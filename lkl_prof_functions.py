@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[10]:
 
 
 from getdist import mcsamples, plots, chains
@@ -34,10 +34,14 @@ from copy import deepcopy
 # In[ ]:
 
 
-def read_minimum(chains_dir, chain_file, extension='_lkl_prof'):
+def read_minimum(chains_dir, chain_file, prof_incr, extension='_lkl_prof'):
+    if len(extension) != 0:
+        if prof_incr > 0:
+            extension = '_p'+extension
+        if prof_incr < 0:
+            extension = '_n'+extension
     param_ML, param_names = np.loadtxt(chains_dir + chain_file + extension + '.minimum', skiprows=3, usecols = (1,2), dtype=str, unpack=True)
     param_ML = param_ML.astype(float)
-
     with open(chains_dir + chain_file + extension + '.minimum') as min_file:
         loglkl_and_chi = [next(min_file) for x in range(2)] # reading in the first two lines separately for -log(lkl) and chi^2
     for line in loglkl_and_chi:
@@ -59,8 +63,13 @@ def read_minimum(chains_dir, chain_file, extension='_lkl_prof'):
 # In[ ]:
 
 
-def read_lkl_output(chains_dir, chain_file, extension='_lkl_profile.txt', loc=-1):
-    lkl_prof_table = np.loadtxt(chains_dir + chain_file + '_lkl_profile.txt')
+def read_lkl_output(chains_dir, chain_file, prof_incr, extension='_lkl_profile.txt', loc=-1):
+    if len(extension) != 0:
+        if prof_incr > 0:
+            extension = '_p'+extension
+        if prof_incr < 0:
+            extension = '_n'+extension
+    lkl_prof_table = np.loadtxt(chains_dir + chain_file + extension)
     try:
         lkl_prof_table.shape[1] # check that lkl_prof_table has multiple rows
         lkl_prof_table = lkl_prof_table[-1, :]
@@ -74,7 +83,12 @@ def read_lkl_output(chains_dir, chain_file, extension='_lkl_profile.txt', loc=-1
 # In[ ]:
 
 
-def write_MLs(param_names, MLs, chains_dir, chain_file, extension='_lkl_profile.txt'):
+def write_MLs(param_names, MLs, chains_dir, chain_file, prof_incr, extension='_lkl_profile.txt'):
+    if len(extension) != 0:
+        if prof_incr > 0:
+            extension = '_p'+extension
+        if prof_incr < 0:
+            extension = '_n'+extension
     with open(chains_dir + chain_file + extension, 'a') as lkl_txt:
         for param in param_names:
             lkl_txt.write("\t %s" % str(MLs[param]))
@@ -94,7 +108,12 @@ def write_MLs(param_names, MLs, chains_dir, chain_file, extension='_lkl_profile.
 # In[ ]:
 
 
-def match_param_names(param_names, chains_dir, chain_file, extension='_lkl_profile.txt'):
+def match_param_names(param_names, chains_dir, chain_file, prof_incr, extension='_lkl_profile.txt'):
+    if len(extension) != 0:
+        if prof_incr > 0:
+            extension = '_p'+extension
+        if prof_incr < 0:
+            extension = '_n'+extension
     with open(chains_dir + chain_file + extension, 'r') as lkl_txt:
         params_recorded = lkl_txt.readline()
     # params_recorded = params_recorded
@@ -126,8 +145,13 @@ def match_param_names(param_names, chains_dir, chain_file, extension='_lkl_profi
 # In[ ]:
 
 
-def match_param_line(param_names, MLs, chains_dir, chain_file, extension='_lkl_profile.txt', loc=-1):
-    lkl_prof_table = np.loadtxt(chains_dir + chain_file + '_lkl_profile.txt')
+def match_param_line(param_names, MLs, chains_dir, chain_file, prof_incr, extension='_lkl_profile.txt', loc=-1):
+    if len(extension) != 0:
+        if prof_incr > 0:
+            extension = '_p'+extension
+        if prof_incr < 0:
+            extension = '_n'+extension
+    lkl_prof_table = np.loadtxt(chains_dir + chain_file + extension)
     if lkl_prof_table.size==0:
         print("match_param_line: File empty ")
         return False
@@ -158,6 +182,10 @@ def match_param_line(param_names, MLs, chains_dir, chain_file, extension='_lkl_p
 
 
 def increment_update_yaml(chains_dir, chain_file, MLs, lkl_pro_yaml, prof_param, prof_incr, yaml_ext = '_lkl_prof'):
+    if prof_incr > 0:
+        yaml_ext = '_p'+yaml_ext
+    if prof_incr < 0:
+        yaml_ext = '_n'+yaml_ext
     # update profile lkl param 
     latex_info = lkl_pro_yaml['params'][prof_param]['latex']
     lkl_pro_yaml['params'][prof_param] = {'value': MLs[prof_param]+prof_incr, 'latex': latex_info}
@@ -177,12 +205,17 @@ def increment_update_yaml(chains_dir, chain_file, MLs, lkl_pro_yaml, prof_param,
 # In[ ]:
 
 
-def run_minimizer(chain_file, yaml_ext='_lkl_prof', debug=False, processes=4):
+def run_minimizer(chain_file, prof_incr, yaml_ext='_lkl_prof', debug=False, processes=6):
     """
     For the parameter we want to vary, remove all but latex and value. 
     The latex is as before from the MCMC yaml file. 
     The value is ML $\pm$ increment. 
     """
+    if len(yaml_ext) != 0:
+        if prof_incr > 0:
+            yaml_ext = '_p'+yaml_ext
+        if prof_incr < 0:
+            yaml_ext = '_n'+yaml_ext
     if debug==True:
         run("mpirun -np "+str(processes)+" cobaya-run "+chain_file+yaml_ext+".minimize.input.yaml -f -d", shell=True)
     else:
@@ -210,119 +243,127 @@ def check_global_min(mcmc_chains, chains_dir, chain_file):
 
 
 # # Overarching run_prof_lkl function
+# ### This should ideally get rewritten after the above code is finalised 
 
 # In[ ]:
 
 
-def run_prof_lkl(chains_dir, chain_file, mcmc_chains, processes  ):
-    ### Check if minimizer was run on all chains previously 
-        # And if not, use input minimizer settings to run it. 
-        # Ideally, TBC, get number of chains from mcmc and run that many minimizer processes. 
+# def run_prof_lkl(chains_dir, chain_file, mcmc_chains, processes, minimizer_settings, prof_param, prof_incr, prof_min, prof_max ):
+#     ### Check if minimizer was run on all chains previously 
+#         # And if not, use input minimizer settings to run it. 
+#         # Ideally, TBC, get number of chains from mcmc and run that many minimizer processes. 
 
-    if not check_global_min(mcmc_chains=mcmc_chains, chains_dir=chains_dir, chain_file=chain_file):
-        mcmc_yaml = yaml_load_file(chains_dir+chain_file+'.input.yaml')
-        mcmc_yaml['sampler'] = minimizer_settings
-        min_yaml = deepcopy(mcmc_yaml)
-        with open(chains_dir + chain_file + '.minimize.input.yaml', 'w') as yaml_file:
-            dump(min_yaml, yaml_file, default_flow_style=False)
+#     if not check_global_min(mcmc_chains=mcmc_chains, chains_dir=chains_dir, chain_file=chain_file):
+#         mcmc_yaml = yaml_load_file(chains_dir+chain_file+'.input.yaml')
+#         mcmc_yaml['sampler'] = minimizer_settings
+#         min_yaml = deepcopy(mcmc_yaml)
+#         with open(chains_dir + chain_file + '.minimize.input.yaml', 'w') as yaml_file:
+#             dump(min_yaml, yaml_file, default_flow_style=False)
 
-        run_minimizer(chain_file=chain_file, yaml_ext='', debug=False, processes=processes)  
+#         run_minimizer(chain_file=chain_file, yaml_ext='', debug=False, processes=processes)  
 
         
-    ### Add minimized point to lkl profile text file 
-        # So: 
-        # 1) load the global minimum file. 
-        # 2) check if we have a file with prof lkl values. 
-        #     * If yes, check that it has the same parameters and in the right order. Proceed. 
-        #     * If no file, start it and write the first line as param names. Proceed. 
-        #     * If file yes, but parameters don't match, then print an error. Stop. 
-        # 2) check if global minimum params have already been written (first line of file)
-        #     * If parameters are written, check that they match global minimum. Don't write them again
-        #     * If parameters are written but don't match, spit out error. 
-        #     * If no params written, add this current ML values for all parameters in append mode
+#     ### Add minimized point to lkl profile text file 
+#         # So: 
+#         # 1) load the global minimum file. 
+#         # 2) check if we have a file with prof lkl values. 
+#         #     * If yes, check that it has the same parameters and in the right order. Proceed. 
+#         #     * If no file, start it and write the first line as param names. Proceed. 
+#         #     * If file yes, but parameters don't match, then print an error. Stop. 
+#         # 2) check if global minimum params have already been written (first line of file)
+#         #     * If parameters are written, check that they match global minimum. Don't write them again
+#         #     * If parameters are written but don't match, spit out error. 
+#         #     * If no params written, add this current ML values for all parameters in append mode
         
-    param_names, param_ML, MLs = read_minimum(chains_dir, chain_file, extension='')
+#     param_names, param_ML, MLs = read_minimum(chains_dir, chain_file, extension='')
 
-    global_ML = deepcopy(MLs)
-    param_order = param_names
+#     global_ML = deepcopy(MLs)
+#     param_order = param_names
 
-    try: 
-        if not match_param_names(param_names, chains_dir=chains_dir, chain_file=chain_file):
-            raise FileExistsError
-    except FileNotFoundError:
-        print("File not found. Starting a new file now: " + chains_dir + chain_file + '_lkl_profile.txt \n')
-        with open(chains_dir + chain_file + '_lkl_profile.txt', 'w') as lkl_txt:
-            lkl_txt.write("#")
-            for param_recorded in param_names:
-                lkl_txt.write("\t %s" % param_recorded)
-            lkl_txt.write("\n")
+#     try: 
+#         if not match_param_names(param_names, chains_dir=chains_dir, chain_file=chain_file):
+#             raise FileExistsError
+#     except FileNotFoundError:
+#         print("File not found. Starting a new file now: " + chains_dir + chain_file + '_lkl_profile.txt \n')
+#         with open(chains_dir + chain_file + '_lkl_profile.txt', 'w') as lkl_txt:
+#             lkl_txt.write("#")
+#             for param_recorded in param_names:
+#                 lkl_txt.write("\t %s" % param_recorded)
+#             lkl_txt.write("\n")
 
-    lkl_prof_table = np.loadtxt(chains_dir + chain_file + '_lkl_profile.txt')
-    if lkl_prof_table.shape!=(0,):
-        if not match_param_line(param_names, global_ML, chains_dir=chains_dir, chain_file=chain_file, loc=0):
-            print("Something went wrong. The first line of the lkl_profile.txt file which should be global ML does not match the global ML in file \n"
-                 +chains_dir + chain_file + '.minimum')
-            raise FileExistsError
-    else: 
-        write_MLs(param_names, MLs, chains_dir=chains_dir, chain_file=chain_file)
-
-
-    ## Likelihood profile 
-        ### Set up lkl profile minimum input yaml file 
-            # Only this should be read and manipulated by the rest of the code
-
-            # Here I check that a "_lkl_prof" file has been created for the minimizer input yaml.
-
-    try:
-        lkl_pro_yaml = yaml_load_file(chains_dir+chain_file+'_lkl_prof.minimize.input.yaml')
-    except FileNotFoundError:
-        run("cp "+chains_dir+chain_file+'.minimize.updated.yaml'+" "+chains_dir+chain_file+'_lkl_prof.minimize.input.yaml', shell=True)
-        lkl_pro_yaml = yaml_load_file(chains_dir+chain_file+'_lkl_prof.minimize.input.yaml')
-
-            # We already have param_names and MLs saved. Update the param_ML with the values from the last entry in _lkl_prof.txt in case we're restarting / continuing a run. 
-
-    param_ML = read_lkl_output(chains_dir=chains_dir, chain_file=chain_file, loc=-1)
-    MLs = dict(zip(param_names, param_ML))
+#     lkl_prof_table = np.loadtxt(chains_dir + chain_file + '_lkl_profile.txt')
+#     if lkl_prof_table.shape!=(0,):
+#         if not match_param_line(param_names, global_ML, chains_dir=chains_dir, chain_file=chain_file, loc=0):
+#             print("Something went wrong. The first line of the lkl_profile.txt file which should be global ML does not match the global ML in file \n"
+#                  +chains_dir + chain_file + '.minimum')
+#             raise FileExistsError
+#     else: 
+#         write_MLs(param_names, MLs, chains_dir=chains_dir, chain_file=chain_file)
 
 
-    ## Run loop over increments of profile lkl param 
-        # While we are within the bounds of the profile param we want to explore: 
+#     ## Likelihood profile 
+#         ### Set up lkl profile minimum input yaml file 
+#             # Only this should be read and manipulated by the rest of the code
 
-        # 1) check if the point we are currently at i.e. param_ML and MLs, matches the last entry in the lkl_prof table.
-        #     - if it does, the last minimum was run and saved successfully. 
-        #     - if not, check if a minimum file exists. 
-        #         - if it does, read it in and save it in the lkl prof txt. minimum run successfully. 
-        #         - if not, this happens when we have updated the yaml but the minimizer didn't finish. Run the yaml again without updating. 
-        # 2) check if minimum was run and saved. 
-        #     - if yes, update the yaml and increment the prof lkl param, update all other params to new values from current ML. Assign the MLs values for the independent params in the yaml as new reference starting points. 
-        # 3) run the minimizer 
-        # 4) save minimizer output 
+#             # Here I check that a "_lkl_prof" file has been created for the minimizer input yaml.
+
+#     try:
+#         lkl_pro_yaml = yaml_load_file(chains_dir+chain_file+'_lkl_prof.minimize.input.yaml')
+#     except FileNotFoundError:
+#         run("cp "+chains_dir+chain_file+'.minimize.updated.yaml'+" "+chains_dir+chain_file+'_lkl_prof.minimize.input.yaml', shell=True)
+#         lkl_pro_yaml = yaml_load_file(chains_dir+chain_file+'_lkl_prof.minimize.input.yaml')
+
+#             # We already have param_names and MLs saved. Update the param_ML with the values from the last entry in _lkl_prof.txt in case we're restarting / continuing a run. 
+
+#     param_ML = read_lkl_output(chains_dir=chains_dir, chain_file=chain_file, loc=-1)
+#     MLs = dict(zip(param_names, param_ML))
+
+
+#     ## Run loop over increments of profile lkl param 
+#         # While we are within the bounds of the profile param we want to explore: 
+
+#         # 1) check if the point we are currently at i.e. param_ML and MLs, matches the last entry in the lkl_prof table.
+#         #     - if it does, the last minimum was run and saved successfully. 
+#         #     - if not, check if a minimum file exists. 
+#         #         - if it does, read it in and save it in the lkl prof txt. minimum run successfully. 
+#         #         - if not, this happens when we have updated the yaml but the minimizer didn't finish. Run the yaml again without updating. 
+#         # 2) check if minimum was run and saved. 
+#         #     - if yes, update the yaml and increment the prof lkl param, update all other params to new values from current ML. Assign the MLs values for the independent params in the yaml as new reference starting points. 
+#         # 3) run the minimizer 
+#         # 4) save minimizer output 
     
-    while MLs[prof_param] < prof_max:
-        last_entry_matches_current_params = match_param_line(param_names, MLs, chains_dir=chains_dir, chain_file=chain_file, loc=-1)
-        if last_entry_matches_current_params:
-            run('rm '+chains_dir + chain_file + '_lkl_prof.minimum*', shell=True)
-            minimum_successfully_run_and_saved = True
-        else:
-            try:
-                param_names, param_ML, MLs = read_minimum(chains_dir, chain_file)
-                write_MLs(param_order, MLs, chains_dir=chains_dir, chain_file=chain_file)
-                run('rm '+chains_dir + chain_file + '_lkl_prof.minimum*', shell=True)
-                minimum_successfully_run_and_saved = True 
-                print("-----> Minimizer run successfully for "+prof_param+" = "+str(MLs[prof_param]))
-            except OSError:
-                minimum_successfully_run_and_saved = False
-                print("-----> Minimizer not run for "+prof_param+" = "+str(MLs[prof_param]))
-                print("       Rerunning this point")
+#     while (MLs[prof_param] < prof_max):
+#         last_entry_matches_current_params = match_param_line(param_names, MLs, chains_dir=chains_dir, chain_file=chain_file, loc=-1)
+#         if last_entry_matches_current_params:
+#             run('rm '+chains_dir + chain_file + '_lkl_prof.minimum*', shell=True)
+#             minimum_successfully_run_and_saved = True
+#         else:
+#             try:
+#                 param_names, param_ML, MLs = read_minimum(chains_dir, chain_file)
+#                 write_MLs(param_order, MLs, chains_dir=chains_dir, chain_file=chain_file)
+#                 run('rm '+chains_dir + chain_file + '_lkl_prof.minimum*', shell=True)
+#                 minimum_successfully_run_and_saved = True 
+#                 print("-----> Minimizer run successfully for "+prof_param+" = "+str(MLs[prof_param]))
+#             except OSError:
+#                 minimum_successfully_run_and_saved = False
+#                 print("-----> Minimizer not run for "+prof_param+" = "+str(MLs[prof_param]))
+#                 print("       Rerunning this point")
 
-        if minimum_successfully_run_and_saved:
-            increment_update_yaml(chains_dir, chain_file, MLs, lkl_pro_yaml, prof_param, prof_incr)
-            run('rm '+chains_dir + chain_file + '_lkl_prof.minimize.updated.yaml', shell=True)
+#         if minimum_successfully_run_and_saved:
+#             increment_update_yaml(chains_dir, chain_file, MLs, lkl_pro_yaml, prof_param, prof_incr)
+#             run('rm '+chains_dir + chain_file + '_lkl_prof.minimize.updated.yaml', shell=True)
 
-        run_minimizer(chain_file=chain_file, yaml_ext='_lkl_prof', debug=False, processes=6)
+#         run_minimizer(chain_file=chain_file, yaml_ext='_lkl_prof', debug=False, processes=6)
 
-        param_names, param_ML, MLs = read_minimum(chains_dir, chain_file)
+#         param_names, param_ML, MLs = read_minimum(chains_dir, chain_file)
         
-    param_names, param_ML, MLs = read_minimum(chains_dir, chain_file)
-    write_MLs(param_order, MLs, chains_dir=chains_dir, chain_file=chain_file)
+#     param_names, param_ML, MLs = read_minimum(chains_dir, chain_file)
+#     write_MLs(param_order, MLs, chains_dir=chains_dir, chain_file=chain_file)
+    
+#     lkl_profile = {}
+#     lkl_prof_table = np.loadtxt(chains_dir + chain_file + '_lkl_profile.txt')
+#     for param in param_names:
+#         lkl_profile[param] = lkl_prof_table[:,np.where(param_order==param)[0][0]]
+        
+#     return param_order, MLs, lkl_profile
 

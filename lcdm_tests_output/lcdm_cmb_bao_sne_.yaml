@@ -1,0 +1,198 @@
+packages_path: /home2/karwal/likelihoods/
+likelihood:
+  planck_2018_lowl.TT:
+  planck_2018_lowl.EE:
+  planck_2018_highl_plik.TTTEEE:
+  planck_2018_lensing.clik:
+  bao.sixdf_2011_bao:
+  bao.sdss_dr7_mgs:
+  bao.sdss_dr12_consensus_bao:
+  sn.pantheon: 
+  # my_H0: 
+  #   external: 'lambda _self: stats.norm.logpdf(_self.provider.get_param("H0"), loc=73.2, scale=1.3)' 
+  #   requires: ["H0"]
+params:
+  logA:
+    prior:
+      min: 1.61
+      max: 3.91
+    ref:
+      dist: norm
+      loc: 3.05
+      scale: 0.001
+    proposal: 0.001
+    latex: \log(10^{10} A_\mathrm{s})
+    drop: true
+  A_s:
+    value: 'lambda logA: 1e-10*np.exp(logA)'
+    latex: A_\mathrm{s}
+  n_s:
+    prior:
+      min: 0.8
+      max: 1.2
+    ref:
+      dist: norm
+      loc: 0.965
+      scale: 0.004
+    proposal: 0.002
+    latex: n_\mathrm{s}
+  # theta_s_1e2:
+    # prior:
+    #   min: 0.5
+    #   max: 10
+    # ref:
+    #   dist: norm
+    #   loc: 1.0416
+    #   scale: 0.0004
+    # proposal: 0.0002
+    # latex: 100\theta_\mathrm{s}
+    # drop: true
+ #  100*theta_s:
+ #    value: 'lambda theta_s_1e2: theta_s_1e2'
+ #    derived: false
+  H0:
+    prior:
+      min: 20
+      max: 100
+    ref:
+      dist: norm
+      loc: 67.3
+      scale: 2
+    proposal: 2
+    # value: 68.
+    latex: H_0
+  omega_b:
+    prior:
+      min: 0.005
+      max: 0.1
+    ref:
+      dist: norm
+      loc: 0.0224
+      scale: 0.0001
+    proposal: 0.0001
+    latex: \Omega_\mathrm{b} h^2
+  omega_cdm:
+    prior:
+      min: 0.001
+      max: 0.99
+    ref:
+      dist: norm
+      loc: 0.12
+      scale: 0.001
+    proposal: 0.0005
+    latex: \Omega_\mathrm{c} h^2
+  Omega_m:
+    latex: \Omega_\mathrm{m}
+  omegamh2:
+    derived: 'lambda Omega_m, H0: Omega_m*(H0/100)**2'
+    latex: \Omega_\mathrm{m} h^2
+  m_ncdm:
+    value: 0.06
+    renames: mnu
+  Omega_Lambda:
+    latex: \Omega_\Lambda
+  YHe:
+    latex: Y_\mathrm{P}
+  tau_reio:
+    prior:
+      min: 0.01
+      max: 0.8
+    ref:
+      dist: norm
+      loc: 0.055
+      scale: 0.006
+    proposal: 0.003
+    latex: \tau_\mathrm{reio}
+  z_reio:
+    latex: z_\mathrm{re}
+  sigma8:
+    latex: \sigma_8
+  s8h5:
+    derived: 'lambda sigma8, H0: sigma8*(H0*1e-2)**(-0.5)'
+    latex: \sigma_8/h^{0.5}
+  s8omegamp5:
+    derived: 'lambda sigma8, Omega_m: sigma8*Omega_m**0.5'
+    latex: \sigma_8 \Omega_\mathrm{m}^{0.5}
+  S8:
+    derived: 'lambda sigma8, Omega_m: sigma8*(Omega_m/0.3)**0.5'
+    latex: S_8
+  s8omegamp25:
+    derived: 'lambda sigma8, Omega_m: sigma8*Omega_m**0.25'
+    latex: \sigma_8 \Omega_\mathrm{m}^{0.25}
+  A:
+    derived: 'lambda A_s: 1e9*A_s'
+    latex: 10^9 A_\mathrm{s}
+  clamp:
+    derived: 'lambda A_s, tau_reio: 1e9*A_s*np.exp(-2*tau_reio)'
+    latex: 10^9 A_\mathrm{s} e^{-2\tau}
+  age:
+    latex: '{\rm{Age}}/\mathrm{Gyr}'
+  rs_drag:
+    latex: r_\mathrm{drag}
+  chi2__CMB:
+    derived: 'lambda chi2__planck_2018_lowl_TT, chi2__planck_2018_lowl_EE, chi2__planck_2018_highl_plik_TTTEEE,
+      chi2__planck_2018_lensing_clik: sum([chi2__planck_2018_lowl_TT, chi2__planck_2018_lowl_EE,
+      chi2__planck_2018_highl_plik_TTTEEE, chi2__planck_2018_lensing_clik])'
+    latex: \chi^2_\mathrm{CMB}
+  chi2__BAO:
+    derived: 'lambda chi2__bao_sixdf_2011_bao, chi2__bao_sdss_dr7_mgs, chi2__bao_sdss_dr12_consensus_bao:
+      sum([chi2__bao_sixdf_2011_bao, chi2__bao_sdss_dr7_mgs, chi2__bao_sdss_dr12_consensus_bao])'
+    latex: \chi^2_\mathrm{BAO}
+sampler:
+  # minimize:
+  #   method: bobyqa
+  #   covmat: auto
+  mcmc:
+    drag: true
+    proposal_scale: 1.9
+    Rminus1_stop: 0.05
+    learn_proposal_Rminus1_max: 1000.
+    learn_proposal_Rminus1_max_early: 10000.
+    covmat: /home2/karwal/likelihoods/data/planck_supp_data_and_covmats/covmats/base_plikHM_TTTEEE_lowl_lowE_lensing_post_BAO_Pantheon18.covmat
+  # evaluate:
+  #   override:
+  #     logA: 3.0476
+  #     n_s: 0.96822
+  #     H0: 67.742
+  #     fraction_fld_ac: 0.01
+  #     cs2_fld: 0.8
+  #     log10_a_c: -4.
+  #     # theta_s_1e2: 1.041085
+  #     omega_b: 0.022436
+  #     omega_cdm: 0.11914
+  #     tau_reio: 0.0566
+  #     # Planck nuisance
+  #     A_planck: 1.00068
+  #     calib_100T: 0.99973
+  #     calib_217T: 0.99817
+  #     A_cib_217: 46.3
+  #     xi_sz_cib: 0.595
+  #     A_sz: 7.15
+  #     ksz_norm: 0.01
+  #     gal545_A_100: 8.83
+  #     gal545_A_143: 11.02
+  #     gal545_A_143_217: 20.07
+  #     gal545_A_217: 95.3
+  #     ps_A_100_100: 248.3
+  #     ps_A_143_143: 49.4
+  #     ps_A_143_217: 51.4
+  #     ps_A_217_217: 121.1
+  #     galf_TE_A_100: 0.1139
+  #     galf_TE_A_100_143: 0.1339
+  #     galf_TE_A_100_217: 0.479
+  #     galf_TE_A_143: 0.224
+  #     galf_TE_A_143_217: 0.666
+  #     galf_TE_A_217: 2.080
+theory:
+  classy:
+    path: /home2/karwal/AxiCLASS/ 
+    extra_args:
+      non linear: hmcode
+      N_ncdm: 1
+      N_ur: 2.0328
+      #background_verbose: 3
+      #input_verbose: 3
+      #thermodynamics_verbose: 3
+      #perturbations_verbose: 1
+output: ./lcdm_cmb_bao_sne_
+debug: False

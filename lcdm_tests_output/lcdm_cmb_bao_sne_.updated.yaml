@@ -1,0 +1,751 @@
+theory:
+  classy:
+    path: /home2/karwal/AxiCLASS/
+    speed: 0.2
+    stop_at_error: false
+    extra_args:
+      non linear: hmcode
+      N_ncdm: 1
+      N_ur: 2.0328
+    use_renames: false
+    renames:
+      As: A_s
+      ns: n_s
+      nrun: alpha_s
+      nrunrun: beta_s
+      nt: n_t
+      ntrun: alpha_t
+      rdrag: rs_drag
+      omegak: Omega_k
+      omegal: Omega_Lambda
+      w: w0_fld
+      wa: wa_fld
+      omegabh2: omega_b
+      omegab: Omega_b
+      omegach2: omega_cdm
+      omegac: Omega_cdm
+      omegam: Omega_m
+      omegan: Omega_nu
+      tau: tau_reio
+      zrei: z_reio
+      deltazrei: reionization_width
+      helium_redshift: helium_fullreio_redshift
+      helium_delta_redshift: helium_fullreio_width
+      yhe: YHe
+      yheused: YHe
+    version: v2.9.4
+    input_params:
+    - A_s
+    - n_s
+    - H0
+    - omega_b
+    - omega_cdm
+    - m_ncdm
+    - tau_reio
+    output_params:
+    - Omega_m
+    - Omega_Lambda
+    - YHe
+    - z_reio
+    - sigma8
+    - age
+    - rs_drag
+likelihood:
+  planck_2018_lowl.TT:
+    path: null
+    clik_file: baseline/plc_3.0/low_l/commander/commander_dx12_v3_2_29.clik
+    product_id: '151902'
+    aliases:
+    - lowl
+    speed: 3000
+    type: CMB
+    stop_at_error: false
+    version: null
+    input_params:
+    - A_planck
+    output_params: []
+  planck_2018_lowl.EE:
+    path: null
+    clik_file: baseline/plc_3.0/low_l/simall/simall_100x143_offlike5_EE_Aplanck_B.clik
+    product_id: '151902'
+    aliases:
+    - lowE
+    speed: 4000
+    type: CMB
+    stop_at_error: false
+    version: null
+    input_params:
+    - A_planck
+    output_params: []
+  planck_2018_highl_plik.TTTEEE:
+    path: null
+    clik_file: baseline/plc_3.0/hi_l/plik/plik_rd12_HM_v22b_TTTEEE.clik
+    product_id: '151902'
+    aliases:
+    - plikHM_TTTEEE
+    speed: 30
+    prior:
+      SZ: 'lambda ksz_norm, A_sz: stats.norm.logpdf(ksz_norm+1.6*A_sz, loc=9.5, scale=3.0)'
+    type: CMB
+    stop_at_error: false
+    version: null
+    input_params:
+    - A_planck
+    - calib_100T
+    - calib_217T
+    - A_pol
+    - calib_100P
+    - calib_143P
+    - calib_217P
+    - cib_index
+    - A_cib_217
+    - xi_sz_cib
+    - A_sz
+    - ksz_norm
+    - gal545_A_100
+    - gal545_A_143
+    - gal545_A_143_217
+    - gal545_A_217
+    - A_sbpx_100_100_TT
+    - A_sbpx_143_143_TT
+    - A_sbpx_143_217_TT
+    - A_sbpx_217_217_TT
+    - ps_A_100_100
+    - ps_A_143_143
+    - ps_A_143_217
+    - ps_A_217_217
+    - galf_TE_index
+    - galf_TE_A_100
+    - galf_TE_A_100_143
+    - galf_TE_A_100_217
+    - galf_TE_A_143
+    - galf_TE_A_143_217
+    - galf_TE_A_217
+    - galf_EE_index
+    - galf_EE_A_100
+    - galf_EE_A_100_143
+    - galf_EE_A_100_217
+    - galf_EE_A_143
+    - galf_EE_A_143_217
+    - galf_EE_A_217
+    - A_cnoise_e2e_100_100_EE
+    - A_cnoise_e2e_143_143_EE
+    - A_cnoise_e2e_217_217_EE
+    - A_sbpx_100_100_EE
+    - A_sbpx_100_143_EE
+    - A_sbpx_100_217_EE
+    - A_sbpx_143_143_EE
+    - A_sbpx_143_217_EE
+    - A_sbpx_217_217_EE
+    output_params: []
+  planck_2018_lensing.clik:
+    path: null
+    clik_file: baseline/plc_3.0/lensing/smicadx12_Dec5_ftl_mv2_ndclpp_p_teb_consext8.clik_lensing
+    product_id: '151902'
+    aliases:
+    - lensing
+    speed: 600
+    type: CMB
+    stop_at_error: false
+    version: null
+    input_params:
+    - A_planck
+    output_params: []
+  bao.sixdf_2011_bao:
+    path: null
+    rs_rescale: 1.027369826
+    data:
+    - 0.106
+    - 0.336
+    - 0.015
+    - rs_over_DV
+    aliases:
+    - BAO
+    speed: 5000
+    type: BAO
+    measurements_file: null
+    rs_fid: null
+    prob_dist: null
+    cov_file: null
+    invcov_file: null
+    stop_at_error: false
+    version: null
+    input_params: []
+    output_params: []
+  bao.sdss_dr7_mgs:
+    path: null
+    prob_dist: bao_data/sdss_MGS_prob.txt
+    prob_dist_bounds:
+    - 0.8005
+    - 1.1985
+    rs_rescale: 4.29720761315
+    data:
+    - 0.15
+    - 4.465666824
+    - 0.1681350461
+    - DV_over_rs
+    aliases:
+    - BAO
+    speed: 5000
+    type: BAO
+    measurements_file: null
+    rs_fid: null
+    cov_file: null
+    invcov_file: null
+    stop_at_error: false
+    version: null
+    input_params: []
+    output_params: []
+  bao.sdss_dr12_consensus_bao:
+    path: null
+    measurements_file: bao_data/sdss_DR12Consensus_bao.dat
+    cov_file: bao_data/BAO_consensus_covtot_dM_Hz.txt
+    rs_fid: 147.78
+    aliases:
+    - BAO
+    speed: 2000
+    type: BAO
+    rs_rescale: null
+    prob_dist: null
+    invcov_file: null
+    stop_at_error: false
+    version: null
+    input_params: []
+    output_params: []
+  sn.pantheon:
+    path: null
+    dataset_file: Pantheon/full_long.dataset
+    dataset_params: null
+    aliases:
+    - Pantheon
+    - Pantheon18
+    use_abs_mag: false
+    speed: 100
+    type: SN
+    stop_at_error: false
+    version: null
+    input_params: []
+    output_params: []
+prior:
+  SZ: 'lambda ksz_norm, A_sz: stats.norm.logpdf(ksz_norm+1.6*A_sz, loc=9.5, scale=3.0)'
+params:
+  logA:
+    prior:
+      min: 1.61
+      max: 3.91
+    ref:
+      dist: norm
+      loc: 3.05
+      scale: 0.001
+    proposal: 0.001
+    latex: \log(10^{10} A_\mathrm{s})
+    drop: true
+  A_s:
+    value: 'lambda logA: 1e-10*np.exp(logA)'
+    latex: A_\mathrm{s}
+    derived: true
+    renames:
+    - As
+  n_s:
+    prior:
+      min: 0.8
+      max: 1.2
+    ref:
+      dist: norm
+      loc: 0.965
+      scale: 0.004
+    proposal: 0.002
+    latex: n_\mathrm{s}
+    renames:
+    - ns
+  H0:
+    prior:
+      min: 20
+      max: 100
+    ref:
+      dist: norm
+      loc: 67.3
+      scale: 2
+    proposal: 2
+    latex: H_0
+  omega_b:
+    prior:
+      min: 0.005
+      max: 0.1
+    ref:
+      dist: norm
+      loc: 0.0224
+      scale: 0.0001
+    proposal: 0.0001
+    latex: \Omega_\mathrm{b} h^2
+    renames:
+    - omegabh2
+  omega_cdm:
+    prior:
+      min: 0.001
+      max: 0.99
+    ref:
+      dist: norm
+      loc: 0.12
+      scale: 0.001
+    proposal: 0.0005
+    latex: \Omega_\mathrm{c} h^2
+    renames:
+    - omegach2
+  Omega_m:
+    latex: \Omega_\mathrm{m}
+    derived: true
+    renames:
+    - omegam
+  omegamh2:
+    derived: 'lambda Omega_m, H0: Omega_m*(H0/100)**2'
+    latex: \Omega_\mathrm{m} h^2
+  m_ncdm:
+    value: 0.06
+    renames: mnu
+  Omega_Lambda:
+    latex: \Omega_\Lambda
+    derived: true
+    renames:
+    - omegal
+  YHe:
+    latex: Y_\mathrm{P}
+    derived: true
+    renames:
+    - yhe
+    - yheused
+  tau_reio:
+    prior:
+      min: 0.01
+      max: 0.8
+    ref:
+      dist: norm
+      loc: 0.055
+      scale: 0.006
+    proposal: 0.003
+    latex: \tau_\mathrm{reio}
+    renames:
+    - tau
+  z_reio:
+    latex: z_\mathrm{re}
+    derived: true
+    renames:
+    - zrei
+  sigma8:
+    latex: \sigma_8
+    derived: true
+  s8h5:
+    derived: 'lambda sigma8, H0: sigma8*(H0*1e-2)**(-0.5)'
+    latex: \sigma_8/h^{0.5}
+  s8omegamp5:
+    derived: 'lambda sigma8, Omega_m: sigma8*Omega_m**0.5'
+    latex: \sigma_8 \Omega_\mathrm{m}^{0.5}
+  S8:
+    derived: 'lambda sigma8, Omega_m: sigma8*(Omega_m/0.3)**0.5'
+    latex: S_8
+  s8omegamp25:
+    derived: 'lambda sigma8, Omega_m: sigma8*Omega_m**0.25'
+    latex: \sigma_8 \Omega_\mathrm{m}^{0.25}
+  A:
+    derived: 'lambda A_s: 1e9*A_s'
+    latex: 10^9 A_\mathrm{s}
+  clamp:
+    derived: 'lambda A_s, tau_reio: 1e9*A_s*np.exp(-2*tau_reio)'
+    latex: 10^9 A_\mathrm{s} e^{-2\tau}
+  age:
+    latex: '{\rm{Age}}/\mathrm{Gyr}'
+    derived: true
+  rs_drag:
+    latex: r_\mathrm{drag}
+    derived: true
+    renames:
+    - rdrag
+  chi2__CMB:
+    latex: \chi^2_\mathrm{CMB}
+    derived: true
+  chi2__BAO:
+    latex: \chi^2_\mathrm{BAO}
+    derived: true
+  A_planck:
+    prior:
+      dist: norm
+      loc: 1
+      scale: 0.0025
+    ref:
+      dist: norm
+      loc: 1
+      scale: 0.002
+    proposal: 0.0005
+    latex: y_\mathrm{cal}
+    renames: calPlanck
+  calib_100T:
+    prior:
+      dist: norm
+      loc: 1.0002
+      scale: 0.0007
+    ref:
+      dist: norm
+      loc: 1.0002
+      scale: 0.001
+    proposal: 0.0005
+    latex: c_{100}
+    renames: cal0
+  calib_217T:
+    prior:
+      dist: norm
+      loc: 0.99805
+      scale: 0.00065
+    ref:
+      dist: norm
+      loc: 0.99805
+      scale: 0.001
+    proposal: 0.0005
+    latex: c_{217}
+    renames: cal2
+  A_pol:
+    value: 1
+  calib_100P:
+    value: 1.021
+  calib_143P:
+    value: 0.966
+  calib_217P:
+    value: 1.04
+  cib_index:
+    value: -1.3
+  A_cib_217:
+    prior:
+      dist: uniform
+      min: 0
+      max: 200
+    ref:
+      dist: norm
+      loc: 67
+      scale: 10
+    proposal: 1.2
+    latex: A^\mathrm{CIB}_{217}
+    renames: acib217
+  xi_sz_cib:
+    prior:
+      dist: uniform
+      min: 0
+      max: 1
+    ref:
+      dist: halfnorm
+      loc: 0
+      scale: 0.1
+    proposal: 0.1
+    latex: \xi^{\mathrm{tSZ}\times\mathrm{CIB}}
+    renames: xi
+  A_sz:
+    prior:
+      dist: uniform
+      min: 0
+      max: 10
+    ref:
+      dist: norm
+      loc: 7
+      scale: 2
+    proposal: 0.6
+    latex: A^\mathrm{tSZ}_{143}
+    renames: asz143
+  ksz_norm:
+    prior:
+      dist: uniform
+      min: 0
+      max: 10
+    ref:
+      dist: halfnorm
+      loc: 0
+      scale: 3
+    proposal: 1
+    latex: A^\mathrm{kSZ}
+    renames: aksz
+  gal545_A_100:
+    prior:
+      dist: norm
+      loc: 8.6
+      scale: 2
+    ref:
+      dist: norm
+      loc: 7
+      scale: 2
+    proposal: 1
+    latex: A^\mathrm{dustTT}_{100}
+    renames: kgal100
+  gal545_A_143:
+    prior:
+      dist: norm
+      loc: 10.6
+      scale: 2
+    ref:
+      dist: norm
+      loc: 9
+      scale: 2
+    proposal: 1
+    latex: A^\mathrm{dustTT}_{143}
+    renames: kgal143
+  gal545_A_143_217:
+    prior:
+      dist: norm
+      loc: 23.5
+      scale: 8.5
+    ref:
+      dist: norm
+      loc: 21
+      scale: 4
+    proposal: 1.5
+    latex: A^\mathrm{dustTT}_{\mathrm{143}\times\mathrm{217}}
+    renames: kgal143217
+  gal545_A_217:
+    prior:
+      dist: norm
+      loc: 91.9
+      scale: 20
+    ref:
+      dist: norm
+      loc: 80
+      scale: 15
+    proposal: 2
+    latex: A^\mathrm{dustTT}_{217}
+    renames: kgal217
+  A_sbpx_100_100_TT:
+    value: 1
+  A_sbpx_143_143_TT:
+    value: 1
+  A_sbpx_143_217_TT:
+    value: 1
+  A_sbpx_217_217_TT:
+    value: 1
+  ps_A_100_100:
+    prior:
+      dist: uniform
+      min: 0
+      max: 400
+    ref:
+      dist: norm
+      loc: 257
+      scale: 24
+    proposal: 17
+    latex: A^\mathrm{PS}_{100}
+    renames: aps100
+  ps_A_143_143:
+    prior:
+      dist: uniform
+      min: 0
+      max: 400
+    ref:
+      dist: norm
+      loc: 47
+      scale: 10
+    proposal: 3
+    latex: A^\mathrm{PS}_{143}
+    renames: aps143
+  ps_A_143_217:
+    prior:
+      dist: uniform
+      min: 0
+      max: 400
+    ref:
+      dist: norm
+      loc: 40
+      scale: 12
+    proposal: 2
+    latex: A^\mathrm{PS}_{\mathrm{143}\times\mathrm{217}}
+    renames: aps143217
+  ps_A_217_217:
+    prior:
+      dist: uniform
+      min: 0
+      max: 400
+    ref:
+      dist: norm
+      loc: 104
+      scale: 13
+    proposal: 2.5
+    latex: A^\mathrm{PS}_{217}
+    renames: aps217
+  galf_TE_index:
+    value: -2.4
+  galf_TE_A_100:
+    prior:
+      dist: norm
+      loc: 0.13
+      scale: 0.042
+    ref:
+      dist: norm
+      loc: 0.13
+      scale: 0.1
+    proposal: 0.1
+    latex: A^\mathrm{dustTE}_{100}
+    renames: galfTE100
+  galf_TE_A_100_143:
+    prior:
+      dist: norm
+      loc: 0.13
+      scale: 0.036
+    ref:
+      dist: norm
+      loc: 0.13
+      scale: 0.1
+    proposal: 0.1
+    latex: A^\mathrm{dustTE}_{\mathrm{100}\times\mathrm{143}}
+    renames: galfTE100143
+  galf_TE_A_100_217:
+    prior:
+      dist: norm
+      loc: 0.46
+      scale: 0.09
+    ref:
+      dist: norm
+      loc: 0.46
+      scale: 0.1
+    proposal: 0.1
+    latex: A^\mathrm{dustTE}_{\mathrm{100}\times\mathrm{217}}
+    renames: galfTE100217
+  galf_TE_A_143:
+    prior:
+      dist: norm
+      loc: 0.207
+      scale: 0.072
+    ref:
+      dist: norm
+      loc: 0.207
+      scale: 0.1
+    proposal: 0.1
+    latex: A^\mathrm{dustTE}_{143}
+    renames: galfTE143
+  galf_TE_A_143_217:
+    prior:
+      dist: norm
+      loc: 0.69
+      scale: 0.09
+    ref:
+      dist: norm
+      loc: 0.69
+      scale: 0.1
+    proposal: 0.1
+    latex: A^\mathrm{dustTE}_{\mathrm{143}\times\mathrm{217}}
+    renames: galfTE143217
+  galf_TE_A_217:
+    prior:
+      dist: norm
+      loc: 1.938
+      scale: 0.54
+    ref:
+      dist: norm
+      loc: 1.938
+      scale: 0.2
+    proposal: 0.2
+    latex: A^\mathrm{dustTE}_{217}
+    renames: galfTE217
+  galf_EE_index:
+    value: -2.4
+  galf_EE_A_100:
+    value: 0.055
+    latex: A^\mathrm{dustEE}_{100}
+    renames: galfEE100
+  galf_EE_A_100_143:
+    value: 0.04
+    latex: A^\mathrm{dustEE}_{\mathrm{100}\times\mathrm{143}}
+    renames: galfEE100143
+  galf_EE_A_100_217:
+    value: 0.094
+    latex: A^\mathrm{dustEE}_{\mathrm{100}\times\mathrm{217}}
+    renames: galfEE100217
+  galf_EE_A_143:
+    value: 0.086
+    latex: A^\mathrm{dustEE}_{143}
+    renames: galfEE143
+  galf_EE_A_143_217:
+    value: 0.21
+    latex: A^\mathrm{dustEE}_{\mathrm{143}\times\mathrm{217}}
+    renames: galfEE143217
+  galf_EE_A_217:
+    value: 0.7
+    latex: A^\mathrm{dustEE}_{217}
+    renames: galfEE217
+  A_cnoise_e2e_100_100_EE:
+    value: 1
+  A_cnoise_e2e_143_143_EE:
+    value: 1
+  A_cnoise_e2e_217_217_EE:
+    value: 1
+  A_sbpx_100_100_EE:
+    value: 1
+  A_sbpx_100_143_EE:
+    value: 1
+  A_sbpx_100_217_EE:
+    value: 1
+  A_sbpx_143_143_EE:
+    value: 1
+  A_sbpx_143_217_EE:
+    value: 1
+  A_sbpx_217_217_EE:
+    value: 1
+  chi2__SN:
+    latex: \chi^2_\mathrm{SN}
+    derived: true
+sampler:
+  mcmc:
+    burn_in: 0
+    max_tries: 40d
+    covmat: /home2/karwal/likelihoods/data/planck_supp_data_and_covmats/covmats/base_plikHM_TTTEEE_lowl_lowE_lensing_post_BAO_Pantheon18.covmat
+    covmat_params: null
+    proposal_scale: 1.9
+    output_every: 60s
+    learn_every: 40d
+    learn_proposal: true
+    learn_proposal_Rminus1_max: 1000.0
+    learn_proposal_Rminus1_max_early: 10000.0
+    learn_proposal_Rminus1_min: 0.0
+    max_samples: .inf
+    Rminus1_stop: 0.05
+    Rminus1_cl_stop: 0.2
+    Rminus1_cl_level: 0.95
+    Rminus1_single_split: 4
+    measure_speeds: true
+    oversample_power: 0.4
+    oversample_thin: true
+    drag: true
+    blocking:
+    - - 1
+      - - logA
+        - n_s
+        - H0
+        - omega_b
+        - omega_cdm
+        - tau_reio
+    - - 7
+      - - A_planck
+    - - 7
+      - - calib_100T
+        - calib_217T
+        - A_cib_217
+        - xi_sz_cib
+        - A_sz
+        - ksz_norm
+        - gal545_A_100
+        - gal545_A_143
+        - gal545_A_143_217
+        - gal545_A_217
+        - ps_A_100_100
+        - ps_A_143_143
+        - ps_A_143_217
+        - ps_A_217_217
+        - galf_TE_A_100
+        - galf_TE_A_100_143
+        - galf_TE_A_100_217
+        - galf_TE_A_143
+        - galf_TE_A_143_217
+        - galf_TE_A_217
+    callback_function: null
+    callback_every: null
+    seed: null
+    check_every: null
+    oversample: null
+    drag_limits: null
+    fallback_covmat_scale: 4
+    version: 3.1.1
+packages_path: /home2/karwal/likelihoods/
+output: lcdm_cmb_bao_sne_
+version: 3.1.1
