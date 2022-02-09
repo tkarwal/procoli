@@ -233,8 +233,8 @@ while ((MLs[prof_param] < prof_max) and (MLs[prof_param] > prof_min)):
         minimum_successfully_run_and_saved = True
     else:
         try:
-            param_names, param_ML, MLs = read_minimum(chains_dir, chain_file)
-            write_MLs(param_order, MLs, chains_dir=chains_dir, chain_file=chain_file)
+            param_names, param_ML, MLs = read_minimum(chains_dir, chain_file, prof_incr=prof_incr)
+            write_MLs(param_order, MLs, chains_dir=chains_dir, chain_file=chain_file, prof_incr=prof_incr)
             run('rm '+chains_dir + chain_file + extension + '.minimum*', shell=True)
             minimum_successfully_run_and_saved = True 
             print("-----> Minimizer run successfully for "+prof_param+" = "+str(MLs[prof_param]))
@@ -249,7 +249,7 @@ while ((MLs[prof_param] < prof_max) and (MLs[prof_param] > prof_min)):
 
     run_minimizer(chain_file=chain_file, prof_incr=prof_incr, debug=False, processes=processes)
 
-    param_names, param_ML, MLs = read_minimum(chains_dir, chain_file)
+    param_names, param_ML, MLs = read_minimum(chains_dir, chain_file, prof_incr=prof_incr)
 
 
 # In[ ]:
