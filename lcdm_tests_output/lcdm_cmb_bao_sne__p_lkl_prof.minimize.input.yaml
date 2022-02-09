@@ -239,7 +239,7 @@ params:
       max: 200
       min: 0
     proposal: 1.2
-    ref: 43.52352465
+    ref: 40.51823575
     renames: acib217
   A_cnoise_e2e_100_100_EE:
     value: 1
@@ -254,7 +254,7 @@ params:
       loc: 1
       scale: 0.0025
     proposal: 0.0005
-    ref: 1.000932786
+    ref: 1.001805918
     renames: calPlanck
   A_pol:
     value: 1
@@ -291,11 +291,11 @@ params:
       max: 10
       min: 0
     proposal: 0.6
-    ref: 6.934266104
+    ref: 8.018243842
     renames: asz143
   H0:
     latex: H_0
-    value: 67.93770586999999
+    value: 74.03770587
   Omega_Lambda:
     derived: true
     latex: \Omega_\Lambda
@@ -327,7 +327,7 @@ params:
       loc: 1.0002
       scale: 0.0007
     proposal: 0.0005
-    ref: 0.9996444731
+    ref: 0.9998455835
     renames: cal0
   calib_143P:
     value: 0.966
@@ -340,7 +340,7 @@ params:
       loc: 0.99805
       scale: 0.00065
     proposal: 0.0005
-    ref: 0.9980770346
+    ref: 0.9979854648
     renames: cal2
   chi2__BAO:
     derived: true
@@ -363,7 +363,7 @@ params:
       loc: 8.6
       scale: 2
     proposal: 1
-    ref: 8.850712148
+    ref: 8.901638094
     renames: kgal100
   gal545_A_143:
     latex: A^\mathrm{dustTT}_{143}
@@ -372,7 +372,7 @@ params:
       loc: 10.6
       scale: 2
     proposal: 1
-    ref: 11.13362412
+    ref: 10.57497125
     renames: kgal143
   gal545_A_143_217:
     latex: A^\mathrm{dustTT}_{\mathrm{143}\times\mathrm{217}}
@@ -381,7 +381,7 @@ params:
       loc: 23.5
       scale: 8.5
     proposal: 1.5
-    ref: 20.09495901
+    ref: 19.50370012
     renames: kgal143217
   gal545_A_217:
     latex: A^\mathrm{dustTT}_{217}
@@ -390,7 +390,7 @@ params:
       loc: 91.9
       scale: 20
     proposal: 2
-    ref: 96.48838874
+    ref: 95.65336808
     renames: kgal217
   galf_EE_A_100:
     latex: A^\mathrm{dustEE}_{100}
@@ -425,7 +425,7 @@ params:
       loc: 0.13
       scale: 0.042
     proposal: 0.1
-    ref: 0.115722528
+    ref: 0.1113364002
     renames: galfTE100
   galf_TE_A_100_143:
     latex: A^\mathrm{dustTE}_{\mathrm{100}\times\mathrm{143}}
@@ -434,7 +434,7 @@ params:
       loc: 0.13
       scale: 0.036
     proposal: 0.1
-    ref: 0.1329289902
+    ref: 0.1310202393
     renames: galfTE100143
   galf_TE_A_100_217:
     latex: A^\mathrm{dustTE}_{\mathrm{100}\times\mathrm{217}}
@@ -443,7 +443,7 @@ params:
       loc: 0.46
       scale: 0.09
     proposal: 0.1
-    ref: 0.4867227206
+    ref: 0.4717916453
     renames: galfTE100217
   galf_TE_A_143:
     latex: A^\mathrm{dustTE}_{143}
@@ -452,7 +452,7 @@ params:
       loc: 0.207
       scale: 0.072
     proposal: 0.1
-    ref: 0.2194469177
+    ref: 0.2057996902
     renames: galfTE143
   galf_TE_A_143_217:
     latex: A^\mathrm{dustTE}_{\mathrm{143}\times\mathrm{217}}
@@ -461,7 +461,7 @@ params:
       loc: 0.69
       scale: 0.09
     proposal: 0.1
-    ref: 0.6665232672
+    ref: 0.6298980909
     renames: galfTE143217
   galf_TE_A_217:
     latex: A^\mathrm{dustTE}_{217}
@@ -470,7 +470,7 @@ params:
       loc: 1.938
       scale: 0.54
     proposal: 0.2
-    ref: 2.093091867
+    ref: 1.908554732
     renames: galfTE217
   galf_TE_index:
     value: -2.4
@@ -481,7 +481,7 @@ params:
       max: 10
       min: 0
     proposal: 1
-    ref: 0.6913183896
+    ref: 0.0
     renames: aksz
   logA:
     drop: true
@@ -490,7 +490,7 @@ params:
       max: 3.91
       min: 1.61
     proposal: 0.001
-    ref: 3.052091122
+    ref: 3.097682835
   m_ncdm:
     renames: mnu
     value: 0.06
@@ -500,7 +500,7 @@ params:
       max: 1.2
       min: 0.8
     proposal: 0.002
-    ref: 0.9681154736
+    ref: 1.000485485
     renames:
     - ns
   omega_b:
@@ -509,7 +509,7 @@ params:
       max: 0.1
       min: 0.005
     proposal: 0.0001
-    ref: 0.02248910725
+    ref: 0.02373368901
     renames:
     - omegabh2
   omega_cdm:
@@ -518,7 +518,7 @@ params:
       max: 0.99
       min: 0.001
     proposal: 0.0005
-    ref: 0.1190806491
+    ref: 0.107285018
     renames:
     - omegach2
   omegamh2:
@@ -531,7 +531,7 @@ params:
       max: 400
       min: 0
     proposal: 17
-    ref: 245.2525438
+    ref: 223.1672231
     renames: aps100
   ps_A_143_143:
     latex: A^\mathrm{PS}_{143}
@@ -540,7 +540,7 @@ params:
       max: 400
       min: 0
     proposal: 3
-    ref: 47.94763154
+    ref: 39.93639326
     renames: aps143
   ps_A_143_217:
     latex: A^\mathrm{PS}_{\mathrm{143}\times\mathrm{217}}
@@ -549,7 +549,7 @@ params:
       max: 400
       min: 0
     proposal: 2
-    ref: 50.62694075
+    ref: 53.87997527
     renames: aps143217
   ps_A_217_217:
     latex: A^\mathrm{PS}_{217}
@@ -558,7 +558,7 @@ params:
       max: 400
       min: 0
     proposal: 2.5
-    ref: 124.1460439
+    ref: 122.4673087
     renames: aps217
   rs_drag:
     derived: true
@@ -583,7 +583,7 @@ params:
       max: 0.8
       min: 0.01
     proposal: 0.003
-    ref: 0.05840729241
+    ref: 0.09302375672
     renames:
     - tau
   xi_sz_cib:
@@ -593,7 +593,7 @@ params:
       max: 1
       min: 0
     proposal: 0.1
-    ref: 0.6181396268
+    ref: 1.0
     renames: xi
   z_reio:
     derived: true
