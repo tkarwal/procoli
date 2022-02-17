@@ -242,6 +242,21 @@ def check_global_min(mcmc_chains, chains_dir, chain_file):
         return FileNotFoundError
 
 
+# ### Check if MCMC converged 
+
+# In[ ]:
+
+
+def check_mcmc_convergence(mcmc_chains, R_minus_1_wanted=0.05):
+    current_R_minus_1 = mcmc_chains.getGelmanRubin()
+    if current_R_minus_1 < R_minus_1_wanted:
+        print("Chains converged sufficiently. Current R-1 = {:.3f} satisfies R-1 wanted = {:.3f}. \nMoving on the checking minimum.".format(current_R_minus_1,R_minus_1_wanted))
+        return True
+    else: 
+        print("Chains not converged. Current R-1 = {:.3f} while R-1 wanted = {:.3f}. \nResuming MCMC. ".format(current_R_minus_1,R_minus_1_wanted))
+        return False 
+
+
 # # Overarching run_prof_lkl function
 # ### This should ideally get rewritten after the above code is finalised 
 
