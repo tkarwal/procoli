@@ -237,7 +237,7 @@ params:
       dist: uniform
       max: 200
       min: 0
-    ref: 40.51823575
+    ref: 43.526766
     proposal: 1.2
     latex: A^\mathrm{CIB}_{217}
     renames: acib217
@@ -252,7 +252,7 @@ params:
       dist: norm
       loc: 1
       scale: 0.0025
-    ref: 1.001805918
+    ref: 1.002353244
     proposal: 0.0005
     latex: y_\mathrm{cal}
     renames: calPlanck
@@ -289,13 +289,13 @@ params:
       dist: uniform
       max: 10
       min: 0
-    ref: 8.018243842
+    ref: 7.366338724
     proposal: 0.6
     latex: A^\mathrm{tSZ}_{143}
     renames: asz143
   H0:
     latex: H_0
-    value: 74.03770587
+    value: 74.13770587
   Omega_Lambda:
     derived: true
     latex: \Omega_\Lambda
@@ -325,7 +325,7 @@ params:
       dist: norm
       loc: 1.0002
       scale: 0.0007
-    ref: 0.9998455835
+    ref: 0.9998605675
     proposal: 0.0005
     latex: c_{100}
     renames: cal0
@@ -338,7 +338,7 @@ params:
       dist: norm
       loc: 0.99805
       scale: 0.00065
-    ref: 0.9979854648
+    ref: 0.9981730541
     proposal: 0.0005
     latex: c_{217}
     renames: cal2
@@ -361,7 +361,7 @@ params:
       dist: norm
       loc: 8.6
       scale: 2
-    ref: 8.901638094
+    ref: 8.794585693
     proposal: 1
     latex: A^\mathrm{dustTT}_{100}
     renames: kgal100
@@ -370,7 +370,7 @@ params:
       dist: norm
       loc: 10.6
       scale: 2
-    ref: 10.57497125
+    ref: 10.5346001
     proposal: 1
     latex: A^\mathrm{dustTT}_{143}
     renames: kgal143
@@ -379,7 +379,7 @@ params:
       dist: norm
       loc: 23.5
       scale: 8.5
-    ref: 19.50370012
+    ref: 19.59882582
     proposal: 1.5
     latex: A^\mathrm{dustTT}_{\mathrm{143}\times\mathrm{217}}
     renames: kgal143217
@@ -388,7 +388,7 @@ params:
       dist: norm
       loc: 91.9
       scale: 20
-    ref: 95.65336808
+    ref: 95.87603087
     proposal: 2
     latex: A^\mathrm{dustTT}_{217}
     renames: kgal217
@@ -423,7 +423,7 @@ params:
       dist: norm
       loc: 0.13
       scale: 0.042
-    ref: 0.1113364002
+    ref: 0.1085281689
     proposal: 0.1
     latex: A^\mathrm{dustTE}_{100}
     renames: galfTE100
@@ -432,7 +432,7 @@ params:
       dist: norm
       loc: 0.13
       scale: 0.036
-    ref: 0.1310202393
+    ref: 0.1317697334
     proposal: 0.1
     latex: A^\mathrm{dustTE}_{\mathrm{100}\times\mathrm{143}}
     renames: galfTE100143
@@ -441,7 +441,7 @@ params:
       dist: norm
       loc: 0.46
       scale: 0.09
-    ref: 0.4717916453
+    ref: 0.4699567328
     proposal: 0.1
     latex: A^\mathrm{dustTE}_{\mathrm{100}\times\mathrm{217}}
     renames: galfTE100217
@@ -450,7 +450,7 @@ params:
       dist: norm
       loc: 0.207
       scale: 0.072
-    ref: 0.2057996902
+    ref: 0.2092218168
     proposal: 0.1
     latex: A^\mathrm{dustTE}_{143}
     renames: galfTE143
@@ -459,7 +459,7 @@ params:
       dist: norm
       loc: 0.69
       scale: 0.09
-    ref: 0.6298980909
+    ref: 0.6377308756
     proposal: 0.1
     latex: A^\mathrm{dustTE}_{\mathrm{143}\times\mathrm{217}}
     renames: galfTE143217
@@ -468,7 +468,7 @@ params:
       dist: norm
       loc: 1.938
       scale: 0.54
-    ref: 1.908554732
+    ref: 1.957769057
     proposal: 0.2
     latex: A^\mathrm{dustTE}_{217}
     renames: galfTE217
@@ -490,7 +490,7 @@ params:
       max: 3.91
       min: 1.61
     proposal: 0.001
-    ref: 3.097682835
+    ref: 3.053588076
   m_ncdm:
     renames: mnu
     value: 0.06
@@ -500,7 +500,7 @@ params:
       max: 1.2
       min: 0.8
     proposal: 0.002
-    ref: 1.000485485
+    ref: 0.9839449722
     renames:
     - ns
   omega_b:
@@ -509,7 +509,7 @@ params:
       max: 0.1
       min: 0.005
     proposal: 0.0001
-    ref: 0.02373368901
+    ref: 0.02312740034
     renames:
     - omegabh2
   omega_cdm:
@@ -518,7 +518,7 @@ params:
       max: 0.99
       min: 0.001
     proposal: 0.0005
-    ref: 0.107285018
+    ref: 0.1129087523
     renames:
     - omegach2
   omegamh2:
@@ -529,7 +529,7 @@ params:
       dist: uniform
       max: 400
       min: 0
-    ref: 223.1672231
+    ref: 237.5713976
     proposal: 17
     latex: A^\mathrm{PS}_{100}
     renames: aps100
@@ -538,7 +538,7 @@ params:
       dist: uniform
       max: 400
       min: 0
-    ref: 39.93639326
+    ref: 43.53057649
     proposal: 3
     latex: A^\mathrm{PS}_{143}
     renames: aps143
@@ -547,7 +547,7 @@ params:
       dist: uniform
       max: 400
       min: 0
-    ref: 53.87997527
+    ref: 50.13572827
     proposal: 2
     latex: A^\mathrm{PS}_{\mathrm{143}\times\mathrm{217}}
     renames: aps143217
@@ -556,7 +556,7 @@ params:
       dist: uniform
       max: 400
       min: 0
-    ref: 122.4673087
+    ref: 121.4970761
     proposal: 2.5
     latex: A^\mathrm{PS}_{217}
     renames: aps217
@@ -583,7 +583,7 @@ params:
       max: 0.8
       min: 0.01
     proposal: 0.003
-    ref: 0.09302375672
+    ref: 0.0641088625
     renames:
     - tau
   xi_sz_cib:
@@ -591,7 +591,7 @@ params:
       dist: uniform
       max: 1
       min: 0
-    ref: 1.0
+    ref: 0.7304257719
     proposal: 0.1
     latex: \xi^{\mathrm{tSZ}\times\mathrm{CIB}}
     renames: xi
@@ -610,8 +610,8 @@ sampler:
     seed: null
     override_scipy: null
     override_bobyqa:
-      rhoend: 0.05
-    covmat: auto
+      seek_global_minimum: 'true'
+    covmat: /home2/karwal/lkl_prof/lcdm_tests_output/lcdm_cmb_bao_sne_.covmat
     covmat_params: null
     version: null
     fallback_covmat_scale: 4

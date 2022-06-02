@@ -1,3 +1,55 @@
+theory:
+  classy:
+    extra_args:
+      N_ncdm: 1
+      N_ur: 2.0328
+      non linear: hmcode
+    input_params:
+    - A_s
+    - n_s
+    - H0
+    - omega_b
+    - omega_cdm
+    - m_ncdm
+    - tau_reio
+    output_params:
+    - Omega_m
+    - Omega_Lambda
+    - YHe
+    - z_reio
+    - sigma8
+    - age
+    - rs_drag
+    path: /home2/karwal/AxiCLASS/
+    renames:
+      As: A_s
+      deltazrei: reionization_width
+      helium_delta_redshift: helium_fullreio_width
+      helium_redshift: helium_fullreio_redshift
+      nrun: alpha_s
+      nrunrun: beta_s
+      ns: n_s
+      nt: n_t
+      ntrun: alpha_t
+      omegab: Omega_b
+      omegabh2: omega_b
+      omegac: Omega_cdm
+      omegach2: omega_cdm
+      omegak: Omega_k
+      omegal: Omega_Lambda
+      omegam: Omega_m
+      omegan: Omega_nu
+      rdrag: rs_drag
+      tau: tau_reio
+      w: w0_fld
+      wa: wa_fld
+      yhe: YHe
+      yheused: YHe
+      zrei: z_reio
+    speed: 0.2
+    stop_at_error: false
+    use_renames: false
+    version: v2.9.4
 likelihood:
   bao.sdss_dr12_consensus_bao:
     aliases:
@@ -174,8 +226,8 @@ likelihood:
     type: SN
     use_abs_mag: false
     version: null
-output: lcdm_cmb_bao_sne__p_lkl_prof
-packages_path: /home2/karwal/likelihoods/
+prior:
+  SZ: 'lambda ksz_norm, A_sz: stats.norm.logpdf(ksz_norm+1.6*A_sz, loc=9.5, scale=3.0)'
 params:
   A:
     derived: 'lambda A_s: 1e9*A_s'
@@ -187,23 +239,7 @@ params:
       max: 200
       min: 0
     proposal: 1.2
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - &id001 !!python/object/apply:numpy.dtype
-      args:
-      - f8
-      - false
-      - true
-      state: !!python/tuple
-      - 3
-      - <
-      - null
-      - null
-      - null
-      - -1
-      - -1
-      - 0
-    - !!binary |
-      LdKCH+53REA=
+    ref: 43.526766
     renames: acib217
   A_cnoise_e2e_100_100_EE:
     value: 1
@@ -218,10 +254,7 @@ params:
       loc: 1
       scale: 0.0025
     proposal: 0.0005
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      Rh/fHZoL8D8=
+    ref: 1.002353244
     renames: calPlanck
   A_pol:
     value: 1
@@ -258,17 +291,11 @@ params:
       max: 10
       min: 0
     proposal: 0.6
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      cHTzX7DNH0A=
+    ref: 7.366338724
     renames: asz143
   H0:
     latex: H_0
-    value: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      tDp7XwN8UkA=
+    value: 74.13770587
   Omega_Lambda:
     derived: true
     latex: \Omega_\Lambda
@@ -300,10 +327,7 @@ params:
       loc: 1.0002
       scale: 0.0007
     proposal: 0.0005
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      JFVLoq3+7z8=
+    ref: 0.9998605675
     renames: cal0
   calib_143P:
     value: 0.966
@@ -316,10 +340,7 @@ params:
       loc: 0.99805
       scale: 0.00065
     proposal: 0.0005
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      AfnmhLbv7z8=
+    ref: 0.9981730541
     renames: cal2
   chi2__BAO:
     derived: true
@@ -342,10 +363,7 @@ params:
       loc: 8.6
       scale: 2
     proposal: 1
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      6z5bYsDEIUA=
+    ref: 8.794585693
     renames: kgal100
   gal545_A_143:
     latex: A^\mathrm{dustTT}_{143}
@@ -354,10 +372,7 @@ params:
       loc: 10.6
       scale: 2
     proposal: 1
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      o9npxViJJUA=
+    ref: 10.5346001
     renames: kgal143
   gal545_A_143_217:
     latex: A^\mathrm{dustTT}_{\mathrm{143}\times\mathrm{217}}
@@ -366,10 +381,7 @@ params:
       loc: 23.5
       scale: 8.5
     proposal: 1.5
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      Y9AJoYOQM0A=
+    ref: 19.59882582
     renames: kgal143217
   gal545_A_217:
     latex: A^\mathrm{dustTT}_{217}
@@ -378,10 +390,7 @@ params:
       loc: 91.9
       scale: 20
     proposal: 2
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      VYIoDAjrV0A=
+    ref: 95.87603087
     renames: kgal217
   galf_EE_A_100:
     latex: A^\mathrm{dustEE}_{100}
@@ -416,10 +425,7 @@ params:
       loc: 0.13
       scale: 0.042
     proposal: 0.1
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      rK++WialvD8=
+    ref: 0.1085281689
     renames: galfTE100
   galf_TE_A_100_143:
     latex: A^\mathrm{dustTE}_{\mathrm{100}\times\mathrm{143}}
@@ -428,10 +434,7 @@ params:
       loc: 0.13
       scale: 0.036
     proposal: 0.1
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      IH4i+UgWwT8=
+    ref: 0.1317697334
     renames: galfTE100143
   galf_TE_A_100_217:
     latex: A^\mathrm{dustTE}_{\mathrm{100}\times\mathrm{217}}
@@ -440,10 +443,7 @@ params:
       loc: 0.46
       scale: 0.09
     proposal: 0.1
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      Rf6aHYLS3j8=
+    ref: 0.4699567328
     renames: galfTE100217
   galf_TE_A_143:
     latex: A^\mathrm{dustTE}_{143}
@@ -452,10 +452,7 @@ params:
       loc: 0.207
       scale: 0.072
     proposal: 0.1
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      90emZyQAyj8=
+    ref: 0.2092218168
     renames: galfTE143
   galf_TE_A_143_217:
     latex: A^\mathrm{dustTE}_{\mathrm{143}\times\mathrm{217}}
@@ -464,10 +461,7 @@ params:
       loc: 0.69
       scale: 0.09
     proposal: 0.1
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      y55viMtC5D8=
+    ref: 0.6377308756
     renames: galfTE143217
   galf_TE_A_217:
     latex: A^\mathrm{dustTE}_{217}
@@ -476,10 +470,7 @@ params:
       loc: 1.938
       scale: 0.54
     proposal: 0.2
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      KxKcxU6q/j8=
+    ref: 1.957769057
     renames: galfTE217
   galf_TE_index:
     value: -2.4
@@ -490,10 +481,7 @@ params:
       max: 10
       min: 0
     proposal: 1
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      AAAAAAAAAAA=
+    ref: 0.0
     renames: aksz
   logA:
     drop: true
@@ -502,10 +490,7 @@ params:
       max: 3.91
       min: 1.61
     proposal: 0.001
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      xJtJXEbMCEA=
+    ref: 3.053588076
   m_ncdm:
     renames: mnu
     value: 0.06
@@ -515,10 +500,7 @@ params:
       max: 1.2
       min: 0.8
     proposal: 0.002
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      1iW14N0D8D8=
+    ref: 0.9839449722
     renames:
     - ns
   omega_b:
@@ -527,10 +509,7 @@ params:
       max: 0.1
       min: 0.005
     proposal: 0.0001
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      63EK1WxPmD8=
+    ref: 0.02312740034
     renames:
     - omegabh2
   omega_cdm:
@@ -539,10 +518,7 @@ params:
       max: 0.99
       min: 0.001
     proposal: 0.0005
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      7lV5NC1nuz8=
+    ref: 0.1129087523
     renames:
     - omegach2
   omegamh2:
@@ -555,10 +531,7 @@ params:
       max: 400
       min: 0
     proposal: 17
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      P4gJD780bEA=
+    ref: 237.5713976
     renames: aps100
   ps_A_143_143:
     latex: A^\mathrm{PS}_{143}
@@ -567,10 +540,7 @@ params:
       max: 400
       min: 0
     proposal: 3
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      iLNL6VPbQ0A=
+    ref: 43.53057649
     renames: aps143
   ps_A_143_217:
     latex: A^\mathrm{PS}_{\mathrm{143}\times\mathrm{217}}
@@ -579,10 +549,7 @@ params:
       max: 400
       min: 0
     proposal: 2
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      kqyJJsy3SkA=
+    ref: 50.13572827
     renames: aps143217
   ps_A_217_217:
     latex: A^\mathrm{PS}_{217}
@@ -591,10 +558,7 @@ params:
       max: 400
       min: 0
     proposal: 2.5
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      pqoazsaAXkA=
+    ref: 121.4970761
     renames: aps217
   rs_drag:
     derived: true
@@ -619,10 +583,7 @@ params:
       max: 0.8
       min: 0.01
     proposal: 0.003
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      CruIwPLitz8=
+    ref: 0.0641088625
     renames:
     - tau
   xi_sz_cib:
@@ -632,83 +593,19 @@ params:
       max: 1
       min: 0
     proposal: 0.1
-    ref: !!python/object/apply:numpy.core.multiarray.scalar
-    - *id001
-    - !!binary |
-      AAAAAAAA8D8=
+    ref: 0.7304257719
     renames: xi
   z_reio:
     derived: true
     latex: z_\mathrm{re}
     renames:
     - zrei
-prior:
-  SZ: 'lambda ksz_norm, A_sz: stats.norm.logpdf(ksz_norm+1.6*A_sz, loc=9.5, scale=3.0)'
 sampler:
   minimize:
-    best_of: 2
-    confidence_for_unbounded: 0.9999995
-    covmat: auto
-    covmat_params: null
-    fallback_covmat_scale: 4
-    ignore_prior: false
-    max_evals: 1e6d
+    covmat: /home2/karwal/lkl_prof/lcdm_tests_output/lcdm_cmb_bao_sne_.covmat
     method: bobyqa
     override_bobyqa:
-      rhoend: 0.05
-    override_scipy: null
-    seed: null
-    version: null
-theory:
-  classy:
-    extra_args:
-      N_ncdm: 1
-      N_ur: 2.0328
-      non linear: hmcode
-    input_params:
-    - A_s
-    - n_s
-    - H0
-    - omega_b
-    - omega_cdm
-    - m_ncdm
-    - tau_reio
-    output_params:
-    - Omega_m
-    - Omega_Lambda
-    - YHe
-    - z_reio
-    - sigma8
-    - age
-    - rs_drag
-    path: /home2/karwal/AxiCLASS/
-    renames:
-      As: A_s
-      deltazrei: reionization_width
-      helium_delta_redshift: helium_fullreio_width
-      helium_redshift: helium_fullreio_redshift
-      nrun: alpha_s
-      nrunrun: beta_s
-      ns: n_s
-      nt: n_t
-      ntrun: alpha_t
-      omegab: Omega_b
-      omegabh2: omega_b
-      omegac: Omega_cdm
-      omegach2: omega_cdm
-      omegak: Omega_k
-      omegal: Omega_Lambda
-      omegam: Omega_m
-      omegan: Omega_nu
-      rdrag: rs_drag
-      tau: tau_reio
-      w: w0_fld
-      wa: wa_fld
-      yhe: YHe
-      yheused: YHe
-      zrei: z_reio
-    speed: 0.2
-    stop_at_error: false
-    use_renames: false
-    version: v2.9.4
+      seek_global_minimum: 'true'
+output: lcdm_cmb_bao_sne__p_lkl_prof
+packages_path: /home2/karwal/likelihoods/
 version: 3.1.1
