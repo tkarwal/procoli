@@ -252,63 +252,62 @@ class lkl_prof:
                 print("check_global_min: Cannot run MP info for global minimum. Something went wrong. ")
                 return False 
         
-    def global_min(self):
+    def global_min(self, run_glob_min=True):
         """
-        !!!!!!!!!
-        
-        SKIPPING MODIFYING THIS FUNCTION FOR NOW .. 
-        
-        !!!!!!!!!
-        Check global minizer, run if needed, then write if not already written 
-        
+        Check global minizer, run if wanted (default True), then write if not already written 
+
         So: 
-        1) load the global minimum file. 
-        2) check if we have a file with prof lkl values. 
+        1) load / create the global minimum file. 
+        2) If we want a global min run, run the minimizer 
+        3) grab the global minimizer results 
+        4) check if we have a file with prof lkl values. 
             * If yes, check that it has the same parameters and in the right order. Proceed. 
             * If no file, start it and write the first line as param names. Proceed. 
             * If file yes, but parameters don't match, then print an error. Stop. 
-        2) check if global minimum params have already been written (first line of file)
+        5) check if global minimum params have already been written (first line of file)
             * If parameters are written, check that they match global minimum. Don't write them again
             * If parameters are written but don't match, spit out error. 
             * If no params written, add this current ML values for all parameters in append mode
-        
+
         :return: global maximum lkl dictionary 
         """
-        if not self.check_global_min():
-            self.min_yaml = yaml_load_file(self.chains_dir+self.info_root+'.input.yaml') # change
-            self.min_yaml['sampler'] = self.minimizer_settings
+        self.check_global_min()
 
-            with open(self.chains_dir + self.info_root + '.minimize.input.yaml', 'w') as yaml_file: # change
-                dump(self.min_yaml, yaml_file, default_flow_style=False)
+        if run_glob_min:
+            self.run_minimizer()
 
-            self.run_minimizer(yaml_ext='') # had also passed debug=True here. Can't remember why.  
-            
         param_names, param_ML, MLs = self.read_minimum(extension='')
         self.global_ML = deepcopy(MLs)
         self.param_order = param_names
-        
+
         try:
             self.match_param_names(self.param_order)
         except FileNotFoundError:
-            extension = '_lkl_profile.txt'
-            print("File not found. Starting a new file now: " + self.chains_dir + self.info_root + self.pn_ext(extension) + '\n') # change
-            with open(self.chains_dir + self.info_root + self.pn_ext(extension), 'w') as lkl_txt: # change
+            extension = '_lkl_profile.txt' # TK change lkl prof file names to include prof param!! 
+    #             extension = '_'+self.prof_param+'_lkl_profile.txt' # new file names to include prof param 
+            extension = self.pn_ext(extension)
+
+            print("File not found. Starting a new file now: " + self.chains_dir + self.info_root + extension + '\n') 
+            with open(self.chains_dir + self.info_root + extension, 'w') as lkl_txt: 
                 lkl_txt.write("#")
                 for param_recorded in self.param_order:
                     lkl_txt.write("\t %s" % param_recorded)
                 lkl_txt.write("\n")
-                
-        extension = '_lkl_profile.txt'
-        lkl_prof_table = np.loadtxt(self.chains_dir + self.info_root + self.pn_ext(extension)) # change
+
+        extension = '_lkl_profile.txt' # TK change lkl prof file names to include prof param!! 
+    #         extension = '_'+self.prof_param+'_lkl_profile.txt' # new file names to include prof param 
+        extension = self.pn_ext(extension)
+
+        lkl_prof_table = np.loadtxt(self.chains_dir + self.info_root + extension) 
 
         if lkl_prof_table.shape!=(0,):
             if not self.match_param_line(self.global_ML, loc=0):
                 print("Something went wrong. The first line of the lkl_profile.txt file which should be global ML does not match the global ML in file \n"
-                     +self.chains_dir + self.info_root + '.minimum') # change
+                     +self.chains_dir + self.info_root + '.bestfit') 
                 raise FileExistsError
         else: 
             self.write_MLs()
-            
+
         return self.global_ML
         
         
@@ -347,33 +346,12 @@ class lkl_prof:
             neg_logLike = float(last_line.split(":")[-1])
 
         MLs['-logLike'] = neg_logLike
+        param_names = np.append(param_names, '-logLike')
+        param_ML = np.append(param_ML, MLs['-logLike'])
         
         self.MLs = MLs
         
         return param_names, param_ML, MLs
-    
-    def read_bf_file(self, full_file_path=None):
-        """
-        Read minimum file at specific location and return just the dictionary of bf values
-        
-        :return: dictionary of {'param_names': param_ML_value}
-        """
-        
-        file_param_ML = np.loadtxt(full_file_path)
-
-        file_param_names = read_header_as_list(full_file_path)
-
-        file_MLs = dict(zip(file_param_names, file_param_ML))
-
-        try:
-            with open(full_file_path[:-8]+'.log') as log_file:
-                last_line = log_file.readlines()[-1]
-                neg_logLike = float(last_line.split(":")[-1])
-                file_MLs['-logLike'] = neg_logLike
-        except FileNotFoundError:
-            pass
-        
-        return file_MLs
     
     def read_lkl_output(self, extension='_lkl_profile.txt', loc=-1):
         """
@@ -469,18 +447,18 @@ class lkl_prof:
     def match_param_line(self, MLs, param_names=None, extension='_lkl_profile.txt', loc=-1):
         """
         Check if specified (default: last) location in lkl_prof output file matches current MLs
-        
+
         :param_names: list of parameter names in the same order as that printed in the file. 
-                        This is usually the global param_order list. 
+                        This is usually the global param_order list. Note: LIST not array! 
         :MLs: dictionary of {'param_name': ML_value }
         :extension: Leave it alone, thank you. 
         :loc: integer location of row in file to check, default is the last line
-        
+
         :return: True if match, else False 
         """
-        
+
         extension=self.pn_ext(extension)
-        
+
         if param_names==None:
             param_names=self.param_order
 
@@ -491,13 +469,13 @@ class lkl_prof:
         else: 
             try:
                 lkl_prof_table.shape[1] # check that lkl_prof_table has multiple rows
-                if False in [lkl_prof_table[loc, np.where(param_names == param)] == MLs[param] for param in param_names]:
+                if False in [lkl_prof_table[loc, param_names.index(param)] == MLs[param] for param in param_names]:
                     return False
                 else:
                     return True 
             except IndexError:
                 print("match_param_line: Only one entry in file, checking that entry ")
-                if False in [lkl_prof_table[np.where(param_names == param)] == MLs[param] for param in param_names]:
+                if False in [lkl_prof_table[param_names.index(param)] == MLs[param] for param in param_names]:
                     return False 
                 else:
                     return True               
@@ -641,7 +619,6 @@ class lkl_prof:
         new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
         print("-----> After third minimizer rung, -logL minimized to  {logL}".format(logL=new_min_point['-logLike']))
 
-
         return True
     
     
@@ -656,6 +633,17 @@ class lkl_prof:
         
         :return: the current lkl prof_param value 
         """
+        
+        global_lp = self.chains_dir+'log.param'
+        lkl_lp = "lkl_prof_"+self.prof_param
+        lkl_lp = self.pn_ext(lkl_lp)
+        run("mkdir "+lkl_lp, shell=True)
+        
+        copy_log_param = "cp {global_lp} {lkl_lp}/".format(global_lp=global_lp, lkl_lp=lkl_lp)
+        run(copy_log_param, shell=True)
+
+        ############
+        
         extension = '_lkl_prof'
         try:
             lkl_pro_yaml = yaml_load_file(self.chains_dir+self.info_root+self.pn_ext(extension)+'.minimize.input.yaml')
