@@ -33,17 +33,26 @@ def read_header_as_list(filename):
 def get_MP_bf_dict(MP_bf_file):
     """
     Read in MontePython style best fit file and save as dictionary. 
-
+    
     :MP_bf_file: full path to MP best fit file, ideally
 
-    :return: dictionary of keys = MP param names and values = best fit point
+    :return: dictionary of {'param_names': best_fit_point}
     """
+
     MP_param_values = np.loadtxt(MP_bf_file)
-    
+
     MP_param_names = read_header_as_list(MP_bf_file)
-    
-    MP_bf = dict(zip(MP_param_names, MP_param_values))
-    
+
+    MP_bf = dict(zip(MP_param_values, MP_param_names))
+
+    try:
+        with open(MP_bf_file[:-8]+'.log') as log_file:
+            last_line = log_file.readlines()[-1]
+            neg_logLike = float(last_line.split(":")[-1])
+            MP_bf['-logLike'] = neg_logLike
+    except FileNotFoundError:
+        pass
+
     return MP_bf
 
 
@@ -343,6 +352,29 @@ class lkl_prof:
         
         return param_names, param_ML, MLs
     
+    def read_bf_file(self, full_file_path=None):
+        """
+        Read minimum file at specific location and return just the dictionary of bf values
+        
+        :return: dictionary of {'param_names': param_ML_value}
+        """
+        
+        file_param_ML = np.loadtxt(full_file_path)
+
+        file_param_names = read_header_as_list(full_file_path)
+
+        file_MLs = dict(zip(file_param_names, file_param_ML))
+
+        try:
+            with open(full_file_path[:-8]+'.log') as log_file:
+                last_line = log_file.readlines()[-1]
+                neg_logLike = float(last_line.split(":")[-1])
+                file_MLs['-logLike'] = neg_logLike
+        except FileNotFoundError:
+            pass
+        
+        return file_MLs
+    
     def read_lkl_output(self, extension='_lkl_profile.txt', loc=-1):
         """
         Read (default = last) line of lkl prof output file into list
@@ -497,37 +529,132 @@ class lkl_prof:
             dump(lkl_pro_yaml, yaml_file, default_flow_style=False)    
         return lkl_pro_yaml['params'][self.prof_param]
     
-    def run_minimizer(self, yaml_ext='_lkl_prof', debug=False):
+    def run_minimizer(self, min_folder='', prev_bf=None):
         """
-        Run minimizer 
-        For the parameter we want to vary, remove all but latex and value. 
-        The latex is as before from the MCMC yaml file. 
-        The value is ML $\pm$ increment. 
-        
-        :yaml_ext: Leave it alone. 
-        :debug: Do you want Cobaya debug output (it's a LOT)
-        
+        Run minimizer as described in 2107.10291, by incrementally running a finer MCMC 
+        with more discrening lklfactor that increases preference for moving towards higher likelihoods 
+        and taking smaller jumps between points so we sample a finer grid in parameter space. 
+        This can be modified as wanted, changing step sizes per rung, lkl factor and jumping factors. 
+        Default:
+        N_steps = 30000, 10000, 10000
+        lklfactor = 10, 200, 1000
+        jumping factor (-f) = 0.5, 0.1, 0.05
+
+        Requires the folder min_folder to already be popualted with a log.param file 
+
+        :min_folder: Folder to run minimizer in 
+        :prev_bf: Starting best-fit file. 
+                This is the MAP of the MCMC chains for the global bf run, 
+                and the previous point for the lkl prof. 
+
         :return: True
         """
-        yaml_ext=self.pn_ext(yaml_ext)
+        
+        print('!!!!!!!!!!!!!!!!!')
+        print("reduced steps per rung for testing. Fix before doing actual runs ")
+        print('!!!!!!!!!!!!!!!!!')
+        
 
-        if debug==True:
-            run("mpirun -np "+str(self.processes)+" cobaya-run "+self.info_root+yaml_ext+".minimize.input.yaml -f -d", shell=True)
+        # Prep the command 
+        if not min_folder:
+            min_folder = '.'
+        elif min_folder[-1] == '/':
+            min_folder = min_folder[:-1]
+
+        if not prev_bf:
+            prev_bf = self.info_root
+        elif '.bestfit' in prev_bf:
+            prev_bf = prev_bf[:-8]
+
+        ## First rung 
+
+        # MCMC
+        run_command = "mpirun -np {procs} MontePython.py run -p {param} -o {output} -b {bf} -c {covmat} -N {steps} -f {f} --lklfactor {lkl}".format(
+            procs=self.processes,
+            param=self.chains_dir+min_folder+'/log.param', 
+            output=self.chains_dir+min_folder+'/',
+            bf=self.chains_dir+prev_bf+'.bestfit', 
+            covmat=self.chains_dir+self.info_root+'.covmat',
+            steps=100, 
+            f = 0.5, 
+            lkl = 10
+        )
+        run(run_command, shell=True)
+        # analyse 
+        run_command = "mpirun -np 1 MontePython.py info {folder} --keep-non-markovian --noplot".format(
+            folder=self.chains_dir+min_folder+'/'
+        )
+        run(run_command, shell=True)
+        # print output 
+        if min_folder=='.':
+            prev_bf = [x for x in str(os.getcwd()).split('/') if x][-1]
+            # switch to current directory as bf root, ensures that we're using the most recent file 
         else:
-            run("mpirun -np "+str(self.processes)+" cobaya-run "+self.info_root+yaml_ext+".minimize.input.yaml -f", shell=True)   
+            prev_bf = min_folder+'/'+min_folder 
+            # switch to most recently produced bf file in the minimizer directory as bf root 
+        new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
+        print("-----> After first minimizer rung, -logL minimized to  {logL}".format(logL=new_min_point['-logLike']))
+
+        ## Second rung 
+
+        # MCMC
+        run_command = "mpirun -np {procs} MontePython.py run -p {param} -o {output} -b {bf} -c {covmat} -N {steps} -f {f} --lklfactor {lkl}".format(
+            procs=self.processes,
+            param=self.chains_dir+min_folder+'/log.param', 
+            output=self.chains_dir+min_folder+'/',
+            bf=self.chains_dir+prev_bf+'.bestfit', 
+            covmat=self.chains_dir+self.info_root+'.covmat',
+            steps=100, 
+            f = 0.1, 
+            lkl = 200
+        )
+        run(run_command, shell=True)
+        # analyse 
+        run_command = "mpirun -np 1 MontePython.py info {folder} --keep-non-markovian --noplot".format(
+            folder=self.chains_dir+min_folder+'/'
+        )
+        run(run_command, shell=True)
+        # print output 
+        new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
+        print("-----> After second minimizer rung, -logL minimized to {logL}".format(logL=new_min_point['-logLike']))
+
+        ## Third rung 
+
+        # MCMC
+        run_command = "mpirun -np {procs} MontePython.py run -p {param} -o {output} -b {bf} -c {covmat} -N {steps} -f {f} --lklfactor {lkl}".format(
+            procs=self.processes,
+            param=self.chains_dir+min_folder+'/log.param', 
+            output=self.chains_dir+min_folder+'/',
+            bf=self.chains_dir+prev_bf+'.bestfit', 
+            covmat=self.chains_dir+self.info_root+'.covmat',
+            steps=100, 
+            f = 0.05, 
+            lkl = 1000
+        )
+        run(run_command, shell=True)
+        # analyse 
+        run_command = "mpirun -np 1 MontePython.py info {folder} --keep-non-markovian --noplot".format(
+            folder=self.chains_dir+min_folder+'/'
+        )
+        run(run_command, shell=True)
+        # print output 
+        new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
+        print("-----> After third minimizer rung, -logL minimized to  {logL}".format(logL=new_min_point['-logLike']))
+
+
         return True
+    
     
     def init_lkl_prof(self):
         """
         Initialise profile lkl yaml:
-        1) copy the global minimiser yaml into a profile lkl yaml if not already done, 
-        and set the sampler to minimiser settings specified in the class call, 
-        and the covamt to the global mcmc covmat. 
+        1) copy the global log.param into a profile lkl folder if not already done
         2) read the last line of the lkl output file and set that as the current MLs dictionary, as self.MLs. 
         this updates the location in prof_param that we're at for running prof lkls 
-        3) set self.lkl_pro_yaml as a dictionary of this modified global minimiser yaml 
+        3) check that this last point is the same as the prev_bf file 
+        4) check that the lkl prof log.param matches this point???
         
-        :return: the lkl profile yaml dictionary 
+        :return: the current lkl prof_param value 
         """
         extension = '_lkl_prof'
         try:
