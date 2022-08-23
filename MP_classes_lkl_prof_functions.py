@@ -479,7 +479,7 @@ class lkl_prof:
         else: 
             try:
                 lkl_prof_table.shape[1] # check that lkl_prof_table has multiple rows
-                if False in [lkl_prof_table[loc, param_names.index(param)] == MLs[param] for param in param_names]:
+                if False in [lkl_prof_table[loc, np.where(param_names==param)[0] ] == MLs[param] for param in param_names]:
                     return False
                 else:
                     return True 
@@ -849,24 +849,38 @@ class lkl_prof:
     def full_lkl_prof_array(self):
         """
         Combine positive and negative increment files into one array 
-        
+        But first check that they have the same param order. 
+
         :return: full likelihood profile array 
         """
-        try:
-            all_MLs_p = np.loadtxt(self.chains_dir+self.info_root+self.pn_ext('_lkl_profile')+'.txt')
-            pos_file = True
-        except OSError:
-            pos_file = False
-        try:
-            all_MLs_n = np.loadtxt(self.chains_dir+self.info_root+'_n_lkl_profile.txt')
-            if pos_file==True:
-                all_MLs = np.concatenate( (np.flip(all_MLs_n, 0),all_MLs_p) )
-            else:
-                all_MLs = np.flip(all_MLs_n, 0)
-        except OSError:
-            all_MLs = all_MLs_p
+        pos_filename = self.chains_dir+self.info_root+'_+'+self.prof_param+'_lkl_profile.txt'
+        neg_filename = self.chains_dir+self.info_root+'_-'+self.prof_param+'_lkl_profile.txt'
 
-        return all_MLs
+        pos_header = read_header_as_list(pos_filename)
+        neg_header = read_header_as_list(neg_filename)
+        if pos_header==neg_header:
+            try:
+                all_MLs_p = np.loadtxt(pos_filename)
+                pos_file = True
+            except OSError:
+                pos_file = False
+            try:
+                all_MLs_n = np.loadtxt(neg_filename)
+                if pos_file==True:
+                    all_MLs = np.concatenate( (np.flip(all_MLs_n, 0),all_MLs_p) )
+                else:
+                    all_MLs = np.flip(all_MLs_n, 0)
+            except OSError:
+                if pos_file == True:
+                    all_MLs = all_MLs_p
+                else:
+                    print("full_lkl_prof_array: could not find files \n{pos} \n{neg} ".format(pos=pos_filename, neg=neg_filename))
+            return all_MLs        
+        else:
+            print("full_lkl_prof_array: the positive and negative files either have different parameters \
+                    or have them in different orders. \
+                    \nEither way, this function cannot correctly combine them. ")
+            return 0
 
     def full_lkl_prof_dict(self):
         """
