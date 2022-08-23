@@ -97,6 +97,8 @@ class lkl_prof:
             This sets up an MCMCSamples instance using the longest chain
             It then replaces the chains in that instance with all the chains in the folder 
             No duplication of chains occurs. 
+            
+        :read_all_chains: boolean for whether to read all the chains in the chains directory 
         
         :return: True if files found, else False 
         """
@@ -128,6 +130,7 @@ class lkl_prof:
         """
         Run MCMC chains 
         Requires the folder chains_dir to already be popualted with a log.param file 
+        :N_steps: number of steps to take for the MCMC 
         
         :return: True if files found, else False 
         """
@@ -208,7 +211,7 @@ class lkl_prof:
         """
         Check MCMC and run if needed 
         
-        /!\ UNTESTED FUNCTION 
+        /!\ THIS FUNCTION DOESN'T ACTUALLY LEAD TO CONVERGENCE. NEEDS IMPROVEMENT. 
         
         :return: True once finished 
         """
@@ -223,7 +226,7 @@ class lkl_prof:
     def check_global_min(self, mcmc_chains=None):
         """
         Check for .bestfit file. This does not necessarily indicate a global minimum run!!! 
-        It only indicates that there exists a file storing the MAP. 
+        It only indicates that there exists a file storing some bf in the 'info_root' file. 
         
         :mcmc_chains: getdist MCSamples instance 
         
@@ -248,9 +251,9 @@ class lkl_prof:
                 print("check_global_min: Cannot run MP info for global minimum. Something went wrong. ")
                 return False 
         
-    def global_min(self, run_glob_min=True):
+    def global_min(self, run_glob_min=False):
         """
-        Check global minizer, run if wanted (default True), then write if not already written 
+        Check global minizer, run if wanted (default False), then write if not already written 
 
         So: 
         1) load / create the global minimum file. 
@@ -264,6 +267,8 @@ class lkl_prof:
             * If parameters are written, check that they match global minimum. Don't write them again
             * If parameters are written but don't match, spit out error. 
             * If no params written, add this current ML values for all parameters in append mode
+            
+        :run_glob_min: Boolean for whether to run a global minimizer 
 
         :return: global maximum lkl dictionary 
         """
@@ -289,7 +294,7 @@ class lkl_prof:
     #             extension = '_'+self.prof_param+'_lkl_profile.txt' # new file names to include prof param 
             extension = self.pn_ext(extension)
 
-            print("File not found. Starting a new file now: " + self.chains_dir + self.info_root + extension + '\n') 
+            print("global_min: File not found. Starting a new file now: " + self.chains_dir + self.info_root + extension + '\n') 
             with open(self.chains_dir + self.info_root + extension, 'w') as lkl_txt: 
                 lkl_txt.write("#")
                 for param_recorded in self.param_order:
@@ -304,7 +309,7 @@ class lkl_prof:
 
         if lkl_prof_table.shape!=(0,):
             if not self.match_param_line(self.global_ML, loc=0):
-                print("Something went wrong. The first line of the lkl_profile.txt file which should be global ML does not match the global ML in file \n"
+                print("global_min: Something went wrong. The first line of the lkl_profile.txt file which should be global ML does not match the global ML in file \n"
                      +self.chains_dir + self.info_root + '.bestfit') 
                 raise FileExistsError
         else: 
@@ -315,10 +320,12 @@ class lkl_prof:
         
     def pn_ext(self, extension):
         """
-        Prefix the file extension string input with the sign of the profile lkl parameter increment to track files correctly. 
+        Prefix the file extension string input with 
+        the sign of the profile lkl parameter, 
+        and its name to track files correctly. 
         
-        :extension: A string of the file name extension without the sign of the prof_parameter 
-        :return: String of extension prefixed with the sign of the increment of profile lkl parameter 
+        :extension: A string of the file name extension, eg. "_good_pupper"
+        :return: String of extension prefixed with the sign and name of the profile lkl parameter "_+height_good_pupper"
         """
         if len(extension)>0:
             if self.prof_incr > 0:
@@ -330,8 +337,9 @@ class lkl_prof:
     def read_minimum(self, extension='_lkl_prof'):
         """
         Read minimum file and save parameter names list, parameter values list and MLs dictionary 
+        Also update the dictionary object self.MLs 
         
-        :extension: The extension of the life type being read in. Leave this as is, the rest of the code assumes the same naming conventions. 
+        :extension: The extension of the life type being read in. Leave this as is, the rest of the code assumes the same naming conventions. Otherwise, specify to read a specific file, but know that this will update the self.MLs dict too. 
         
         :return: List of parameter names, list of parameter ML values, dictionary of {'param_names': param_ML_value}
         """
@@ -362,15 +370,12 @@ class lkl_prof:
         :extension: Leave this alone, thank you. 
         :loc: integer location of line in file to read. Default is last line 
         
-        TK: SHOULD THIS BE PROMOTED TO A DICT?? 
-        Already have read_header func to get the param names 
-        
-        :return: List of parameters
+        :return: Dict of parameters
         """
 
         extension=self.pn_ext(extension)
 
-        lkl_prof_table = np.loadtxt(self.chains_dir + self.info_root + extension) # change 
+        lkl_prof_table = np.loadtxt(self.chains_dir + self.info_root + extension) 
         try:
             lkl_prof_table.shape[1] # check that lkl_prof_table has multiple rows
             lkl_prof_table = lkl_prof_table[loc, :]
@@ -409,6 +414,7 @@ class lkl_prof:
     def match_param_names(self, param_names, extension='_lkl_profile.txt'):
         """
         Check that param names match in target file and MLs dictionary
+        Matches combination, not permutation. 
         
         :param_names: List of param_names to check against the file 
         :extension: Leave it alone, thank you. 
@@ -465,6 +471,7 @@ class lkl_prof:
         if param_names==None:
             param_names=self.param_order
 
+#         print("match_param_line: checking file {file}".format(file=self.chains_dir + self.info_root + extension) )
         lkl_prof_table = np.loadtxt(self.chains_dir + self.info_root + extension) 
         if lkl_prof_table.size==0:
             print("match_param_line: File empty ")
@@ -478,18 +485,19 @@ class lkl_prof:
                     return True 
             except IndexError:
                 print("match_param_line: Only one entry in file, checking that entry ")
-                if False in [lkl_prof_table[param_names.index(param)] == MLs[param] for param in param_names]:
+                if False in [lkl_prof_table[np.where(param_names==param)[0][0] ] == MLs[param] for param in param_names]:
                     return False 
                 else:
-                    return True               
-                
+                    return True
     
-    def run_minimizer(self, min_folder='', prev_bf=None):
+    
+    def run_minimizer(self, min_folder="lkl_prof", prev_bf=None):
         """
         Run minimizer as described in 2107.10291, by incrementally running a finer MCMC 
         with a more discrening lklfactor that increases preference for moving towards higher likelihoods 
         and taking smaller jumps between points so we sample a finer grid in parameter space. 
         This can be modified as wanted, changing step sizes per rung, lkl factor and jumping factors. 
+        You would need to change this function, then import the class and run a lkl prof as usual. 
         Default:
         N_steps = 30000, 10000, 10000
         lklfactor = 10, 200, 1000
@@ -501,14 +509,17 @@ class lkl_prof:
         :prev_bf: Starting best-fit file. 
                 This is the MAP of the MCMC chains for the global bf run, 
                 and the previous point for the lkl prof. 
+                The function init_lkl_prof takes care of designating this, set interanlly. 
 
         :return: True
         """
         
         print('!!!!!!!!!!!!!!!!!')
-        print("reduced steps per rung for testing. Fix before doing actual runs ")
+        print("run_minimizer: reduced steps per rung for testing. Fix before doing actual runs ")
         print('!!!!!!!!!!!!!!!!!')
         
+        if min_folder=="lkl_prof":
+            min_folder += self.pn_ext('/')
 
         # Prep the command 
         if not min_folder:
@@ -521,7 +532,7 @@ class lkl_prof:
         elif '.bestfit' in prev_bf:
             prev_bf = prev_bf[:-8]
 
-        ## First rung 
+        ##### First rung #####
 
         # MCMC
         run_command = "mpirun -np {procs} MontePython.py run -p {param} -o {output} -b {bf} -c {covmat} -N {steps} -f {f} --lklfactor {lkl}".format(
@@ -531,7 +542,7 @@ class lkl_prof:
             bf=self.chains_dir+prev_bf+'.bestfit', 
             covmat=self.chains_dir+self.info_root+'.covmat',
             steps=100, 
-            f = 0.5, 
+            f = 0.2, 
             lkl = 10
         )
         run(run_command, shell=True)
@@ -548,10 +559,10 @@ class lkl_prof:
             prev_bf = min_folder+'/'+min_folder 
             # switch to most recently produced bf file in the minimizer directory as bf root 
         new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
-        print("------------------> After first minimizer rung, -logL minimized to  {logL}".format(
+        print("\n\n------------------> After first minimizer rung, -logL minimized to  {logL} \n\n".format(
             logL=new_min_point['-logLike']))
 
-        ## Second rung 
+        ##### Second rung #####
 
         # MCMC
         run_command = "mpirun -np {procs} MontePython.py run -p {param} -o {output} -b {bf} -c {covmat} -N {steps} -f {f} --lklfactor {lkl}".format(
@@ -572,10 +583,10 @@ class lkl_prof:
         run(run_command, shell=True)
         # print output 
         new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
-        print("------------------> After second minimizer rung, -logL minimized to {logL}".format(
+        print("\n\n------------------> After second minimizer rung, -logL minimized to {logL} \n\n".format(
             logL=new_min_point['-logLike']))
 
-        ## Third rung 
+        ##### Third rung #####
 
         # MCMC
         run_command = "mpirun -np {procs} MontePython.py run -p {param} -o {output} -b {bf} -c {covmat} -N {steps} -f {f} --lklfactor {lkl}".format(
@@ -596,7 +607,7 @@ class lkl_prof:
         run(run_command, shell=True)
         # print output 
         new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
-        print("------------------> After third minimizer rung, -logL minimized to  {logL}".format(
+        print("\n\n ------------------> After third minimizer rung, -logL minimized to  {logL} \n\n".format(
             logL=new_min_point['-logLike']))
 
         return True
@@ -606,14 +617,12 @@ class lkl_prof:
         """
         Initialise profile lkl yaml:
         1) create profile lkl folder and copy the global log.param into it
-        2) read the last line of the lkl output file and set that as the current MLs dictionary, as self.MLs 
-            this updates the location in prof_param that we're at for running prof lkls 
+        2) read in last .bestfit file and set that as the current MLs dictionary, as self.MLs 
+            this updates the location in prof_param that we're at for running prof lkls. 
+            Under MP, decided to do this instead of updating to the last line of the lkl output file
         3) copy global bf into prof lkl output bf if the file doesn't exist 
-        ----------
-            HAVE NOT IMPLEMENTED THE NEXT TWO POINTS. DO I NEED TO? SHOULD GO INTO RUN_LKL_PROF ??
-        ----------
-        3) check that this last point is the same as the prev_bf file 
-        4) check that the lkl prof log.param matches this point???
+
+        :lkl_dir: Leave the extension alone, thank you. 
         
         :return: the current lkl prof_param value 
         """
@@ -624,28 +633,35 @@ class lkl_prof:
 
         copy_log_param = "cp {global_lp} {lkl_dir}".format(global_lp=global_lp, lkl_dir=lkl_dir)
         run(copy_log_param, shell=True)
-        
-        self.MLs = self.read_lkl_output()
-        
+                
         try: 
             self.read_minimum()
         except OSError:
+            # the lkl prof bf and lof files don't exist
+            # copy global bf 
             copy_global_bf_to_lkl_prof_bf = "cp "+self.info_root+".bestfit "+self.info_root+self.pn_ext("_lkl_prof")+".bestfit"
             run(copy_global_bf_to_lkl_prof_bf, shell=True)
+            # copy global log 
+            copy_global_log_to_lkl_prof_log = "cp "+self.info_root+".log "+self.info_root+self.pn_ext("_lkl_prof")+".log"
+            run(copy_global_log_to_lkl_prof_log, shell=True)
+            # now this should work 
+            self.read_minimum()
+        
+        # # Used to be initialised to last entry of lkl prof txt file 
+        # self.MLs = self.read_lkl_output()
         
         return self.MLs[self.prof_param]
 
 
     def increment_update_logparam(self, lkl_dir = "lkl_prof"):
         """
-        Update yaml info to next increment 
+        Update log.param value for prof_param to next increment = current + increment
         
         
-        :MLs: dictionary of {'param_name': ML_value }
-        :lkl_pro_yaml: dictionary of yaml info for running lkl profile incremental minimizer 
-        :yaml_ext: Leave it alone. 
+        :lkl_dir: Leave the extension alone, thank you. 
         
-        :return: dictionary for yaml info of profile lkl parameter, including incremented value and latex info
+        :return: new value of prof_param that the log.param was updated to, 
+                    string of the line containing the prof_param in the log.param
         """
         lkl_dir += self.pn_ext('/')
         lkl_lp = lkl_dir+"log.param"
@@ -657,27 +673,88 @@ class lkl_prof:
         with open(lkl_lp, 'w') as f:
             for line in lkl_lp_lines:
                 if self.prof_param in line:
-#                     print("Original: \t"+line)
+                    # print("Original: \t"+line)
                     prof_param_lp_line = line.split("=")
                     prof_param_lp_data = prof_param_lp_line[1].split(",")
-        
-                    prof_param_lp_data[0] = "[" + str(self.MLs[self.prof_param]+self.prof_incr)
+                    
+                    updated_prof_param = self.MLs[self.prof_param]+self.prof_incr
+                    prof_param_lp_data[0] = "[" + str(updated_prof_param)
                     prof_param_lp_data[3] = "0." 
                 
                     prof_param_lp_line = prof_param_lp_line[0] + " = " + ",".join(prof_param_lp_data)
                     line = prof_param_lp_line
-#                     print("Modified: \t"+line)
+                    # print("Modified: \t"+line)
                     f.write(line)
                     line_modified = True
                 else:
                     f.write(line)
 
         if line_modified == False:
-            print("Error: could not find line with profile lkl parameter {prof_param} in log.param at {lp_file}".format(
+            print("Error: increment_update_logparam: could not find line with profile lkl parameter {prof_param} in log.param at {lp_file}".format(
                 prof_param=self.prof_param, lp_file=lkl_lp))
+            raise KeyError
 
-        return prof_param_lp_line
+        return updated_prof_param, prof_param_lp_line
     
+    
+    def get_prof_param_value_from_lp(self, lp_dir = "lkl_prof"):
+        """
+        Get current value of the prof lkl parameter from the lop param file 
+        
+        :lp_dir: directory of the log.param file to read. Default set for using function internally. 
+        
+        :return: 'mean' of prof lkl parameter in the log.param as float 
+        """
+        if lp_dir:
+            lp_dir += self.pn_ext('/')
+        lp_file = lp_dir+"log.param"
+
+        with open(lp_file, 'r') as f:
+            lkl_lp_lines = f.readlines()
+
+        for line in lkl_lp_lines:
+            if self.prof_param in line:
+                prof_param_line = line
+                prof_param_line = prof_param_line.split("=")
+                prof_param_line = prof_param_line[1].split(",")
+                prof_param_line = prof_param_line[0].strip()[1:]
+
+                prof_param_value = float(prof_param_line)
+                break
+
+        return prof_param_value
+    
+    def update_and_save_min_output(self, extension='_lkl_prof'):
+        """
+        Function to add the profile lkl param to the output bf file, 
+        by copying the file to the main folder with this addition. 
+        /!\ File naming scheme hard-coded within this function. 
+        
+        :extension: Leave it alone, thank you. 
+        
+        :return: current value of the prof lkl param as a float 
+
+        """
+        extension=self.pn_ext(extension)
+
+        min_output_bf = self.chains_dir + "lkl_prof" + self.pn_ext('/') + "lkl_prof" + self.pn_ext('/')[:-1] + ".bestfit"
+
+        with open(min_output_bf, 'r') as f:
+            bf_lines = f.readlines()
+
+        bf_lines[0] = bf_lines[0][:-1]+',        '+self.prof_param+'\n'
+        bf_lines[1] = bf_lines[1][:-1]+" "+str(self.current_prof_param)+'\n'
+
+        save_output_bf = self.chains_dir + self.info_root + extension + '.bestfit'
+
+        with open(save_output_bf, 'w') as f:
+            for line in bf_lines:
+                f.write(line)
+                
+        copy_log_to_main_folder = "cp lkl_prof" + self.pn_ext('/') + "lkl_prof" + self.pn_ext('/')[:-1] + ".log "+self.info_root+extension+".log"
+        run(copy_log_to_main_folder, shell=True)
+
+        return self.current_prof_param
         
     def run_lkl_prof(self, time_mins=False):
         """
@@ -689,14 +766,18 @@ class lkl_prof:
             - if it does, the last minimum was run and saved successfully.
             - if not, check if a minimum file exists. 
                 - if it does, read it in and save it in the lkl prof txt. minimum run successfully. 
-                - if not, this happens when we have updated the yaml but the minimizer didn't finish. 
-                  Run the yaml again without updating. 
         2) check if minimum was run and saved. 
-            - if yes, update the yaml and increment the prof lkl param, 
-              update all other params to new values from current ML. 
-              Assign the MLs values for the independent params in the yaml as new reference starting points. 
-        3) run the minimizer 
-        4) save minimizer output 
+            - if yes, increment the prof lkl param and update the log.param, 
+              remove all previous chains and analysis files created from the previous increment. 
+              Remember, this increment means prof_param = current_MLs + increment. 
+              So we are simply one increment away from the most recent .bestfit file. 
+            - With this setup, we really shouldn't wind up in a mininmum-not-saved regime. 
+              But in this case, grab the current value of prof_param so we have it, 
+              and still remove files from any previous run. 
+        3) run the minimizer, pointing to the bf file (usually the one we just wrote) as starting bf
+        4) save minimizer output + value of the prof param into a new bf in the main folder. 
+        
+        Finally, outside the loop, save the output of the last minimizer. 
 
         :time_mins: boolean for whether you want to time each minimiser increment or not 
         
@@ -705,7 +786,7 @@ class lkl_prof:
         if time_mins == True:
             time_extension = '_time_stamps.txt'
             time_extension = self.pn_ext(time_extension)
-            with open(self.chains_dir + self.info_root + time_extension, 'w') as lkl_txt:
+            with open(self.chains_dir + self.info_root + time_extension, 'a') as lkl_txt:
                 lkl_txt.write("#")
                 lkl_txt.write(" %s \t step_size \t minimizer_time " % self.prof_param)
                 lkl_txt.write("\n")
@@ -713,55 +794,56 @@ class lkl_prof:
         extension = '_lkl_prof'
         extension = self.pn_ext(extension)
 
-        MLs = deepcopy(self.MLs)
-        lkl_pro_yaml = deepcopy(self.lkl_pro_yaml)
-
-        while ((MLs[self.prof_param] < self.prof_max) and (MLs[self.prof_param] > self.prof_min)):
-            last_entry_matches_current_params = self.match_param_line(MLs)
+        while ((self.MLs[self.prof_param] < self.prof_max) and (self.MLs[self.prof_param] > self.prof_min)):
+            minimum_successfully_run_and_saved = False
+            last_entry_matches_current_params = self.match_param_line(self.MLs)
             if last_entry_matches_current_params:
-                run('rm '+self.chains_dir + self.info_root + extension + '.minimum*', shell=True)
                 minimum_successfully_run_and_saved = True
             else:
-                try:
-                    param_names, param_ML, MLs = self.read_minimum()
-                    self.write_MLs(MLs)
-                    run('rm '+self.chains_dir + self.info_root + extension + '.minimum*', shell=True)
-                    minimum_successfully_run_and_saved = True 
-                    print("-----> Minimizer run successfully for "+self.prof_param+" = "+str(MLs[self.prof_param]))
-                except OSError:
-                    minimum_successfully_run_and_saved = False
-                    print("-----> Minimizer not run for "+self.prof_param+" = "+str(MLs[self.prof_param]))
-                    print("       Rerunning this point")
+                param_names, param_ML, self.MLs = self.read_minimum()
+                # read_min updates self.MLs 
+                self.write_MLs(self.MLs)
+                minimum_successfully_run_and_saved = True 
+                print("run_lkl_prof: -----> Minimizer run successfully for "+self.prof_param+" = "+str(self.MLs[self.prof_param]))
 
             if minimum_successfully_run_and_saved:
-                self.increment_update_logparam(MLs, lkl_pro_yaml)
-                run('rm '+self.chains_dir + self.info_root + extension + '.minimize.updated.yaml', shell=True)
+                self.current_prof_param, prof_param_string_in_logparam = self.increment_update_logparam()
+                run('rm '+self.chains_dir + "lkl_prof" + self.pn_ext('/') + '20*', shell=True)
+                run('rm '+self.chains_dir + "lkl_prof" + self.pn_ext('/') + "lkl_prof" + self.pn_ext('/')[:-1] + "*", 
+                        shell=True)    
+            else:
+                self.current_prof_param = self.get_prof_param_value_from_lp()
+                run('rm '+self.chains_dir + "lkl_prof" + self.pn_ext('/') + '20*', shell=True)
+                run('rm '+self.chains_dir + "lkl_prof" + self.pn_ext('/') + "lkl_prof" + self.pn_ext('/')[:-1] + "*", 
+                        shell=True)    
 
             time_start = time()
 
-            self.run_minimizer()
+            self.run_minimizer(prev_bf=self.info_root+self.pn_ext("_lkl_prof"), 
+                               min_folder="lkl_prof" + self.pn_ext('/')[:-1] )
+            self.update_and_save_min_output() 
 
             time_end = time()
             time_taken = time_end - time_start
-
+            
             if time_mins == True:
-                with open(self.chains_dir + self.info_root + self.pn_ext(time_extension), 'a') as lkl_txt:
-                    lkl_txt.write("{:.4g} \t {:.2g} \t {:.2f} \n".format(lkl_pro_yaml['params'][self.prof_param]['value'], 
+                with open(self.chains_dir + self.info_root + time_extension, 'a') as lkl_txt:
+                    lkl_txt.write("{:.4g} \t {:.2g} \t {:.2f} \n".format(self.current_prof_param, 
                                                                          self.prof_incr, time_taken))
-                print("       Time taken for minimizer = {:.2f}".format(time_taken))
+                print("run_lkl_prof:        Time taken for minimizer = {:.2f}".format(time_taken))
 
-            param_names, param_ML, MLs = self.read_minimum()
+            param_names, param_ML, self.MLs = self.read_minimum()
 
-    #         prof_incr *= 2. # Readjust prof lkl increment if wanted by copying this function and adding such a line 
+            # prof_incr *= 2. # Readjust prof lkl increment if wanted by copying this function and adding such a line 
 
         # outside loop now 
-        last_entry_matches_current_params = self.match_param_line(MLs)
+        last_entry_matches_current_params = self.match_param_line(self.MLs)
         if not last_entry_matches_current_params:
-            param_names, param_ML, MLs = self.read_minimum()
-            self.write_MLs(MLs)
-            print("-----> Minimizer run successfully for "+self.prof_param+" = "+str(MLs[self.prof_param]))
+            param_names, param_ML, self.MLs = self.read_minimum()
+            self.write_MLs(self.MLs)
+            print("run_lkl_prof: -----> Minimizer run successfully for "+self.prof_param+" = "+str(self.MLs[self.prof_param]))
         
-        return MLs[self.prof_param]
+        return self.MLs[self.prof_param]
     
     
     def full_lkl_prof_array(self):
@@ -771,7 +853,7 @@ class lkl_prof:
         :return: full likelihood profile array 
         """
         try:
-            all_MLs_p = np.loadtxt(self.chains_dir+self.info_root+'_p_lkl_profile.txt')
+            all_MLs_p = np.loadtxt(self.chains_dir+self.info_root+self.pn_ext('_lkl_profile')+'.txt')
             pos_file = True
         except OSError:
             pos_file = False
