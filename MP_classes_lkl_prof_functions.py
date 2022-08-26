@@ -505,7 +505,7 @@ class lkl_prof:
         This can be modified as wanted, changing step sizes per rung, lkl factor and jumping factors. 
         You would need to change this function, then import the class and run a lkl prof as usual. 
         Default:
-        N_steps = 30000, 10000, 10000
+        N_steps = input parameter, same for all rungs
         lklfactor = 10, 200, 1000
         jumping factor (-f) = 0.5, 0.1, 0.05
 
@@ -516,6 +516,7 @@ class lkl_prof:
                 This is the MAP of the MCMC chains for the global bf run, 
                 and the previous point for the lkl prof. 
                 The function init_lkl_prof takes care of designating this, set interanlly. 
+        :N_steps: Number of steps each minimizer rung takes, same for all rungs 
 
         :return: True
         """
@@ -622,13 +623,13 @@ class lkl_prof:
         2) read in last .bestfit file and set that as the current MLs dictionary, as self.MLs 
             this updates the location in prof_param that we're at for running prof lkls. 
             Under MP, decided to do this instead of updating to the last line of the lkl output file
-                I don't know why I did that. Ideally, we should be at the last point that was acually saved..
-                Oh, right. I did that because MP needs a .bf file to start the next minimizer run with... 
-                
-                /!\ AMMEND THIS FUNCTION: should take last step in lkl prof txt file and copy that into the bf to be used. 
-                This also works for the very first step which should be the global bf,
-                which would be the last point in the lkl prof txt file if this is the first step anyway 
-                
+                TK: fixed different bug in code which now no longer needs this update, from what I can see.
+                Leaving this comment here for posterity / future fixes:
+                    I don't know why I did that. Ideally, we should be at the last point that was acually saved..
+                    Oh, right. I did that because MP needs a .bf file to start the next minimizer run with... 
+                    /!\ AMMEND THIS FUNCTION: should take last step in lkl prof txt file and copy that into the bf to be used. 
+                    This also works for the very first step which should be the global bf,
+                    which would be the last point in the lkl prof txt file if this is the first step anyway 
         3) copy global bf into prof lkl output bf if the file doesn't exist 
 
         :lkl_dir: Leave the extension alone, thank you. 
@@ -656,8 +657,17 @@ class lkl_prof:
             # now this should work 
             self.read_minimum()
         
-        # # Used to be initialised to last entry of lkl prof txt file 
+        # # /!\ Used to be initialised to last entry of lkl prof txt file 
         # self.MLs = self.read_lkl_output()
+        # # Copy last lkl profile txt point into the bestfit file:
+        # lkl_prof_header = read_header_as_list(self.info_root+self.pn_ext('_lkl_profile.txt'))
+        # last_lkl_prof_txt_entry = np.loadtxt(self.info_root+self.pn_ext('_lkl_profile.txt'), dtype=str)[-1]
+        # update_bf_to_last_point = self.info_root+self.pn_ext("_lkl_prof")+".bestfit"
+        # with open(update_bf_to_last_point, 'w') as lkl_txt: 
+        #     lkl_txt.write("#       ")
+        #     lkl_txt.write((",      ").join(lkl_prof_header))
+        #     lkl_txt.write("\n")
+        #     lkl_txt.write(("    ").join(last_lkl_prof_txt_entry))
         
         return self.MLs[self.prof_param]
 
@@ -789,6 +799,7 @@ class lkl_prof:
         Finally, outside the loop, save the output of the last minimizer. 
 
         :time_mins: boolean for whether you want to time each minimiser increment or not 
+        :N_min_steps: Number of steps to run per rung of the minimizer 
         
         :return: the value of the profile lkl parameter at the end of this loop 
         """
