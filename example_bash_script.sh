@@ -19,4 +19,6 @@ which mpirun
 
 cd /home2/karwal/lkl_prof/
 
-python LCDM_tests.py
+# Ideally, name your job with the increment direction too
+# Remember to run two jobs, each with a + and - increment 
+python example_run.py

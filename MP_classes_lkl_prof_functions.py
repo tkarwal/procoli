@@ -661,13 +661,14 @@ class lkl_prof:
         # self.MLs = self.read_lkl_output()
         # # Copy last lkl profile txt point into the bestfit file:
         # lkl_prof_header = read_header_as_list(self.info_root+self.pn_ext('_lkl_profile.txt'))
-        # last_lkl_prof_txt_entry = np.loadtxt(self.info_root+self.pn_ext('_lkl_profile.txt'), dtype=str)[-1]
         # update_bf_to_last_point = self.info_root+self.pn_ext("_lkl_prof")+".bestfit"
         # with open(update_bf_to_last_point, 'w') as lkl_txt: 
         #     lkl_txt.write("#       ")
         #     lkl_txt.write((",      ").join(lkl_prof_header))
         #     lkl_txt.write("\n")
-        #     lkl_txt.write(("    ").join(last_lkl_prof_txt_entry))
+        #     lkl_txt.write(str(self.MLs[lkl_prof_header[0]]))
+        #     for param in lkl_prof_header[1:]:
+        #         lkl_txt.write("    "+str(self.MLs[param]) )
         
         return self.MLs[self.prof_param]
 
