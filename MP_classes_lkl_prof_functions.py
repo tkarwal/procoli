@@ -295,7 +295,7 @@ class lkl_prof:
 
         param_names, param_ML, MLs = self.read_minimum(extension='')
         self.global_ML = deepcopy(MLs)
-        self.param_order = param_names
+        self.param_order = param_names.tolist()
 
         extension = '_lkl_profile.txt' 
         extension = self.pn_ext(extension)
