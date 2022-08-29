@@ -3,8 +3,6 @@ from getdist.mcsamples import MCSamplesError
 import numpy as np
 from subprocess import run
 import os
-from yaml import dump
-from cobaya.yaml import yaml_load_file
 from copy import deepcopy
 from time import time
 from glob import glob
@@ -252,7 +250,7 @@ class lkl_prof:
         except OSError:
             try:
                 new_info_root = [x for x in self.chains_dir.split('/') if x][-1]
-                run("mpirun -np 1 MontePython.py info "+self.chains_dir+" --keep-non-markovian --noplot", shell=True)
+                run("mpirun -np 1 MontePython.py info "+self.chains_dir+" --keep-non-markovian --noplot --want-covmat", shell=True)
                 np.loadtxt(self.chains_dir+new_info_root+'.bestfit')
                 self.info_root = new_info_root
                 print("check_global_min: Found minimum with file name "+self.info_root)
@@ -261,7 +259,7 @@ class lkl_prof:
                 print("check_global_min: Cannot run MP info for global minimum. Something went wrong. ")
                 return False 
         
-    def global_min(self, run_glob_min=False):
+    def global_min(self, run_glob_min=False, N_min_steps=3000):
         """
         Check global minizer, run if wanted (default False), then write if not already written 
 
@@ -288,7 +286,7 @@ class lkl_prof:
             run("mkdir global_min", shell=True)
             run("cp log.param global_min/log.param", shell=True)
             
-            self.run_minimizer(min_folder='global_min')
+            self.run_minimizer(min_folder='global_min', N_steps=N_min_steps)
 
             run("cp global_min/global_min.bestfit "+self.info_root+".bestfit", shell=True)
             run("cp global_min/global_min.log "+self.info_root+".log", shell=True)
@@ -690,9 +688,10 @@ class lkl_prof:
             lkl_lp_lines = f.readlines()
 
         line_modified = False
+        lp_prof_param_string = "'"+self.prof_param+"'"
         with open(lkl_lp, 'w') as f:
             for line in lkl_lp_lines:
-                if self.prof_param in line:
+                if lp_prof_param_string in line:
                     # print("Original: \t"+line)
                     prof_param_lp_line = line.split("=")
                     prof_param_lp_data = prof_param_lp_line[1].split(",")
@@ -732,8 +731,9 @@ class lkl_prof:
         with open(lp_file, 'r') as f:
             lkl_lp_lines = f.readlines()
 
+        lp_prof_param_string = "'"+self.prof_param+"'"
         for line in lkl_lp_lines:
-            if self.prof_param in line:
+            if lp_prof_param_string in line:
                 prof_param_line = line
                 prof_param_line = prof_param_line.split("=")
                 prof_param_line = prof_param_line[1].split(",")
@@ -880,31 +880,34 @@ class lkl_prof:
         pos_filename = self.chains_dir+self.info_root+'_+'+self.prof_param+'_lkl_profile.txt'
         neg_filename = self.chains_dir+self.info_root+'_-'+self.prof_param+'_lkl_profile.txt'
 
-        pos_header = read_header_as_list(pos_filename)
-        neg_header = read_header_as_list(neg_filename)
-        if pos_header==neg_header:
-            try:
-                all_MLs_p = np.loadtxt(pos_filename)
-                pos_file = True
-            except OSError:
-                pos_file = False
-            try:
-                all_MLs_n = np.loadtxt(neg_filename)
-                if pos_file==True:
+        
+            
+        try:
+            pos_header = read_header_as_list(pos_filename)
+            all_MLs_p = np.loadtxt(pos_filename)
+            pos_file = True
+        except FileNotFoundError:
+            pos_file = False
+        try:
+            neg_header = read_header_as_list(neg_filename)
+            all_MLs_n = np.loadtxt(neg_filename)
+            if pos_file==True:
+                if pos_header==neg_header:
                     all_MLs = np.concatenate( (np.flip(all_MLs_n, 0),all_MLs_p) )
                 else:
-                    all_MLs = np.flip(all_MLs_n, 0)
-            except OSError:
-                if pos_file == True:
-                    all_MLs = all_MLs_p
-                else:
-                    print("full_lkl_prof_array: could not find files \n{pos} \n{neg} ".format(pos=pos_filename, neg=neg_filename))
-            return all_MLs        
-        else:
-            print("full_lkl_prof_array: the positive and negative files either have different parameters \
-                    or have them in different orders. \
-                    \nEither way, this function cannot correctly combine them. ")
-            return 0
+                    print("full_lkl_prof_array: the positive and negative files either have different parameters \
+                            or have them in different orders. \
+                            \nEither way, this function cannot correctly combine them. ")
+                    return 0
+            else:
+                all_MLs = np.flip(all_MLs_n, 0)
+        except FileNotFoundError:
+            if pos_file == True:
+                all_MLs = all_MLs_p
+            else:
+                print("full_lkl_prof_array: could not find files \n{pos} \n{neg} ".format(pos=pos_filename, neg=neg_filename))
+        return all_MLs   
+
 
     def full_lkl_prof_dict(self):
         """
