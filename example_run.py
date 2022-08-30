@@ -11,7 +11,9 @@ lcdm.check_mcmc_chains(read_all_chains=True)
 
 lcdm.check_mcmc_convergence()
 
-lcdm.global_min(run_glob_min=True)
+lcdm.global_min(run_glob_min=True, N_min_steps=100) 
+# it is important to change this to False for restarted runs that already have a global min. 
+# Otherwise the old global min may get overwritten 
 
 print(lcdm.global_ML)
 
