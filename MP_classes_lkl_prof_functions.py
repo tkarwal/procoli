@@ -69,6 +69,7 @@ class lkl_prof:
         self.R_minus_1_wanted = R_minus_1_wanted
         self.mcmc_chain_settings = mcmc_chain_settings
         self.minimizer_settings = minimizer_settings # Remove 
+        self.mcmc_chains = None
         
         self.prof_param = prof_param
         self.prof_incr = prof_incr
