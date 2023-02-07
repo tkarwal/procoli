@@ -533,6 +533,36 @@ class lkl_prof:
             prev_bf = self.info_root
         elif '.bestfit' in prev_bf:
             prev_bf = prev_bf[:-8]
+            
+        ##### NEW Zeroth rung #####
+
+        # MCMC
+        run_command = "mpirun -np {procs} MontePython.py run -p {param} -o {output} -b {bf} -c {covmat} -N {steps} -f {f} --lklfactor {lkl}".format(
+            procs=self.processes,
+            param=self.chains_dir+min_folder+'/log.param', 
+            output=self.chains_dir+min_folder+'/',
+            bf=self.chains_dir+prev_bf+'.bestfit', 
+            covmat=self.chains_dir+self.info_root+'.covmat',
+            steps=N_steps, 
+            f = 1, 
+            lkl = 1
+        )
+        run(run_command, shell=True)
+        # analyse 
+        run_command = "mpirun -np 1 MontePython.py info {folder} --keep-non-markovian --noplot".format(
+            folder=self.chains_dir+min_folder+'/'
+        )
+        run(run_command, shell=True)
+        # print output 
+        if min_folder=='.':
+            prev_bf = [x for x in str(os.getcwd()).split('/') if x][-1]
+            # switch to current directory as bf root, ensures that we're using the most recent file 
+        else:
+            prev_bf = min_folder+'/'+min_folder 
+            # switch to most recently produced bf file in the minimizer directory as bf root 
+        new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
+        print("\n\n------------------> After first minimizer rung, -logL minimized to  {logL} \n\n".format(
+            logL=new_min_point['-logLike']))
 
         ##### First rung #####
 
@@ -554,12 +584,12 @@ class lkl_prof:
         )
         run(run_command, shell=True)
         # print output 
-        if min_folder=='.':
-            prev_bf = [x for x in str(os.getcwd()).split('/') if x][-1]
-            # switch to current directory as bf root, ensures that we're using the most recent file 
-        else:
-            prev_bf = min_folder+'/'+min_folder 
-            # switch to most recently produced bf file in the minimizer directory as bf root 
+#         if min_folder=='.':
+#             prev_bf = [x for x in str(os.getcwd()).split('/') if x][-1]
+#             # switch to current directory as bf root, ensures that we're using the most recent file 
+#         else:
+#             prev_bf = min_folder+'/'+min_folder 
+#             # switch to most recently produced bf file in the minimizer directory as bf root 
         new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
         print("\n\n------------------> After first minimizer rung, -logL minimized to  {logL} \n\n".format(
             logL=new_min_point['-logLike']))
