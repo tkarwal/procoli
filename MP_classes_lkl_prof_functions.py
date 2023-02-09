@@ -76,6 +76,9 @@ class lkl_prof:
         self.prof_min = prof_min
         self.prof_max = prof_max
         
+        self.jump_fac = None
+        self.lkl_fac = None
+        
         self.covmat_file = minimizer_settings['minimize']['covmat'] # Change 
         
         os.chdir(self.chains_dir)
@@ -533,8 +536,21 @@ class lkl_prof:
             prev_bf = self.info_root
         elif '.bestfit' in prev_bf:
             prev_bf = prev_bf[:-8]
-            
-        ##### NEW Zeroth rung #####
+
+        # Check if jumping factors and lkl factors are defined, other set to defaults 
+        if self.jump_fac == None:
+            self.jump_fac = [0.5, 0.2, 0.1, 0.05]
+        if self.lkl_fac == None:
+            self.lkl_fac = [1, 10, 200, 1000]
+        if len(self.jump_fac) != len(self.lkl_fac):
+            print("!!!!!!!!!\n!!!!!!!!!\n!!!!!!!!!")
+            print("Error in run_minimizer: Lists passed for jumping factor and lkl factor are of different lengths. \
+            Setting to defaults!!! ")
+            print("!!!!!!!!!\n!!!!!!!!!\n!!!!!!!!!")
+            self.jump_fac = [0.5, 0.2, 0.1, 0.05]
+            self.lkl_fac = [1, 10, 200, 1000]
+
+        ##### First rung #####
 
         # MCMC
         run_command = "mpirun -np {procs} MontePython.py run -p {param} -o {output} -b {bf} -c {covmat} -N {steps} -f {f} --lklfactor {lkl}".format(
@@ -544,8 +560,8 @@ class lkl_prof:
             bf=self.chains_dir+prev_bf+'.bestfit', 
             covmat=self.chains_dir+self.info_root+'.covmat',
             steps=N_steps, 
-            f = 1, 
-            lkl = 1
+            f = self.jump_fac[0], 
+            lkl = self.lkl_fac[0]
         )
         run(run_command, shell=True)
         # analyse 
@@ -560,87 +576,38 @@ class lkl_prof:
         else:
             prev_bf = min_folder+'/'+min_folder 
             # switch to most recently produced bf file in the minimizer directory as bf root 
+        # set new minimum 
         new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
-        print("\n\n------------------> After first minimizer rung, -logL minimized to  {logL} \n\n".format(
+        print("\n\n------------------> After minimizer rung 1, -logL minimized to  {logL} \n\n".format(
             logL=new_min_point['-logLike']))
 
-        ##### First rung #####
 
-        # MCMC
-        run_command = "mpirun -np {procs} MontePython.py run -p {param} -o {output} -b {bf} -c {covmat} -N {steps} -f {f} --lklfactor {lkl}".format(
-            procs=self.processes,
-            param=self.chains_dir+min_folder+'/log.param', 
-            output=self.chains_dir+min_folder+'/',
-            bf=self.chains_dir+prev_bf+'.bestfit', 
-            covmat=self.chains_dir+self.info_root+'.covmat',
-            steps=N_steps, 
-            f = 0.2, 
-            lkl = 10
-        )
-        run(run_command, shell=True)
-        # analyse 
-        run_command = "mpirun -np 1 MontePython.py info {folder} --keep-non-markovian --noplot".format(
-            folder=self.chains_dir+min_folder+'/'
-        )
-        run(run_command, shell=True)
-        # print output 
-#         if min_folder=='.':
-#             prev_bf = [x for x in str(os.getcwd()).split('/') if x][-1]
-#             # switch to current directory as bf root, ensures that we're using the most recent file 
-#         else:
-#             prev_bf = min_folder+'/'+min_folder 
-#             # switch to most recently produced bf file in the minimizer directory as bf root 
-        new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
-        print("\n\n------------------> After first minimizer rung, -logL minimized to  {logL} \n\n".format(
-            logL=new_min_point['-logLike']))
+        ##### Loop over other rungs #####
 
-        ##### Second rung #####
+        num_itrs = len(self.jump_fac)
 
-        # MCMC
-        run_command = "mpirun -np {procs} MontePython.py run -p {param} -o {output} -b {bf} -c {covmat} -N {steps} -f {f} --lklfactor {lkl}".format(
-            procs=self.processes,
-            param=self.chains_dir+min_folder+'/log.param', 
-            output=self.chains_dir+min_folder+'/',
-            bf=self.chains_dir+prev_bf+'.bestfit', 
-            covmat=self.chains_dir+self.info_root+'.covmat',
-            steps=N_steps, 
-            f = 0.1, 
-            lkl = 200
-        )
-        run(run_command, shell=True)
-        # analyse 
-        run_command = "mpirun -np 1 MontePython.py info {folder} --keep-non-markovian --noplot".format(
-            folder=self.chains_dir+min_folder+'/'
-        )
-        run(run_command, shell=True)
-        # print output 
-        new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
-        print("\n\n------------------> After second minimizer rung, -logL minimized to {logL} \n\n".format(
-            logL=new_min_point['-logLike']))
-
-        ##### Third rung #####
-
-        # MCMC
-        run_command = "mpirun -np {procs} MontePython.py run -p {param} -o {output} -b {bf} -c {covmat} -N {steps} -f {f} --lklfactor {lkl}".format(
-            procs=self.processes,
-            param=self.chains_dir+min_folder+'/log.param', 
-            output=self.chains_dir+min_folder+'/',
-            bf=self.chains_dir+prev_bf+'.bestfit', 
-            covmat=self.chains_dir+self.info_root+'.covmat',
-            steps=N_steps, 
-            f = 0.05, 
-            lkl = 1000
-        )
-        run(run_command, shell=True)
-        # analyse 
-        run_command = "mpirun -np 1 MontePython.py info {folder} --keep-non-markovian --noplot".format(
-            folder=self.chains_dir+min_folder+'/'
-        )
-        run(run_command, shell=True)
-        # print output 
-        new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
-        print("\n\n ------------------> After third minimizer rung, -logL minimized to  {logL} \n\n".format(
-            logL=new_min_point['-logLike']))
+        for i in range(1,num_itrs):
+            # MCMC
+            run_command = "mpirun -np {procs} MontePython.py run -p {param} -o {output} -b {bf} -c {covmat} -N {steps} -f {f} --lklfactor {lkl}".format(
+                procs=self.processes,
+                param=self.chains_dir+min_folder+'/log.param', 
+                output=self.chains_dir+min_folder+'/',
+                bf=self.chains_dir+prev_bf+'.bestfit', 
+                covmat=self.chains_dir+self.info_root+'.covmat',
+                steps=N_steps, 
+                f = self.jump_fac[i], 
+                lkl = self.lkl_fac[i]
+            )
+            run(run_command, shell=True)
+            # analyse 
+            run_command = "mpirun -np 1 MontePython.py info {folder} --keep-non-markovian --noplot".format(
+                folder=self.chains_dir+min_folder+'/'
+            )
+            run(run_command, shell=True)
+            # set new minimum 
+            new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
+            print("\n\n------------------> After minimizer rung {ith}, -logL minimized to  {logL} \n\n".format(
+                ith=i+1, logL=new_min_point['-logLike']))
 
         return True
     
