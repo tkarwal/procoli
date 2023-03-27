@@ -58,17 +58,15 @@ class lkl_prof:
     
     def __init__(self, chains_dir, info_root, prof_param, processes=6, R_minus_1_wanted=0.05, 
                  mcmc_chain_settings={'ignore_rows' : 0.3}, 
-                 minimizer_settings={'minimize': {'method': 'bobyqa','covmat' : 'auto',}}, # Remove 
                  prof_incr=None, prof_min=None, prof_max=None
                 ):
         
         self.chains_dir = chains_dir
-        self.info_root = info_root # this should change. Maybe info_root 
+        self.info_root = info_root 
         
         self.processes = processes
         self.R_minus_1_wanted = R_minus_1_wanted
         self.mcmc_chain_settings = mcmc_chain_settings
-        self.minimizer_settings = minimizer_settings # Remove 
         self.mcmc_chains = None
         
         self.prof_param = prof_param
@@ -79,7 +77,7 @@ class lkl_prof:
         self.jump_fac = None
         self.lkl_fac = None
         
-        self.covmat_file = minimizer_settings['minimize']['covmat'] # Change 
+        self.covmat_file = self.chains_dir+self.info_root+'.covmat'
         
         os.chdir(self.chains_dir)
     
@@ -247,6 +245,8 @@ class lkl_prof:
                 reset_info_root = 'cp '+self.info_root+'.bestfit '+new_info_root+'.bestfit '
                 run(reset_info_root, shell=True)
                 reset_info_root = 'cp '+self.info_root+'.log '+new_info_root+'.log '
+                run(reset_info_root, shell=True)
+                reset_info_root = 'cp '+self.info_root+'.covmat '+new_info_root+'.covmat '
                 run(reset_info_root, shell=True)
                 self.info_root = new_info_root
                 

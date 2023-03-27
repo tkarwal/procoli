@@ -175,6 +175,30 @@ def MP_covmat_to_cob(MP_covmat_file, cob_yaml_file, output_covmat_file):
     return covmat_header
 
 
+def Cob_covmat_to_MP(cob_covmat_file, output_covmat_file):
+    """
+    Convert Cobaya covmat to an MP covmat. 
+    
+    !!!!! need to check to make sure that MP only reads the rows and columns relevant for its parameters 
+
+    :cob_covmat_file: full path to the MP covmat you want to convert 
+    :output_covmat_file: full path to the output file you want to write. 
+                            This file should end in 'xxx.covmat'!!
+    
+    :return: header of the new covmat file written 
+    """
+    # First get the covmat file and the header 
+    covmat = np.loadtxt(cob_covmat_file)
+    cob_covmat_params = read_header_as_list(cob_covmat_file)
+
+    # Make a Cobaya format header for this new file 
+    covmat_header = ',        '.join(cob_to_MP(cob_covmat_params) )
+
+    # Output the covmat 
+    np.savetxt(output_covmat_file, covmat, fmt='%.18e', delimiter='    ', newline='\n', header=covmat_header)
+    
+    return covmat_header
+
 # - Function below should also be added to classes notebook making test --> self. Or rewrite such that test --> lkl_prof instance. It lets you use an MP covmat for a Cobaya run. Any sampler. 
 # - Check if directory/filename.covmat already exists. 
 # - If it does, Cobaya will default to that file, so this function should return an error. 
