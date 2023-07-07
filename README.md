@@ -6,7 +6,7 @@
 
 
 This code is still being actively developed.  
-Prerequisites are [**MontePython**](https://github.com/brinckmann/montepython_public) and everything that entails and [**GetDist**](https://getdist.readthedocs.io/en/latest/). Both can be pip installed, but I refer you to their own documentation to see specific installation instructions.  
+Prerequisites are an edited branch of [**MontePython**](https://github.com/tkarwal/montepython_lkl_prof) and everything that entails and [**GetDist**](https://getdist.readthedocs.io/en/latest/). Both can be pip installed, but I refer you to their own documentation to see specific installation instructions.  
 The rest of the required python modules are likely already installed, particularly if you're running anaconda. They include **numpy, subprocess, os, copy, time, glob**. 
 
 General logic of the code is as follows: 
