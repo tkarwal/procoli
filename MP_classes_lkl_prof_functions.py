@@ -263,7 +263,7 @@ class lkl_prof:
                 print("check_global_min: Cannot run MP info for global minimum. Something went wrong. ")
                 return False 
         
-    def global_min(self, run_glob_min=False, N_min_steps=3000):
+    def global_min(self, run_glob_min=False, N_min_steps=3000, run_minuit=False):
         """
         Check global minizer, run if wanted (default False), then write if not already written 
 
@@ -287,10 +287,19 @@ class lkl_prof:
         self.check_global_min()
 
         if run_glob_min:
+            
+            # Check if jumping factors and lkl factors are defined, 
+            # otherwise set to defaults for global min 
+            # provided by Yashvi Patel
+            if self.jump_fac == None:
+                self.jump_fac = [1, 0.8, 0.5, 0.2, 0.1, 0.05]
+            if self.lkl_fac == None:
+                self.lkl_fac =  [3, 4, 5, 10, 200, 1000]
+            
             run("mkdir global_min", shell=True)
             run("cp log.param global_min/log.param", shell=True)
             
-            self.run_minimizer(min_folder='global_min', N_steps=N_min_steps)
+            self.run_minimizer(min_folder='global_min', N_steps=N_min_steps, run_minuit=run_minuit)
 
             run("cp global_min/global_min.bestfit "+self.info_root+".bestfit", shell=True)
             run("cp global_min/global_min.log "+self.info_root+".log", shell=True)
@@ -499,7 +508,7 @@ class lkl_prof:
                     return True
     
     
-    def run_minimizer(self, min_folder="lkl_prof", prev_bf=None, N_steps=5000):
+    def run_minimizer(self, min_folder="lkl_prof", prev_bf=None, N_steps=5000, run_minuit=False):
         """
         Run minimizer as described in 2107.10291, by incrementally running a finer MCMC 
         with a more discrening lklfactor that increases preference for moving towards higher likelihoods 
@@ -537,11 +546,11 @@ class lkl_prof:
         elif '.bestfit' in prev_bf:
             prev_bf = prev_bf[:-8]
 
-        # Check if jumping factors and lkl factors are defined, other set to defaults 
+        # Check if jumping factors and lkl factors are defined, otherwise set to defaults, provided by Yashvi Patel
         if self.jump_fac == None:
-            self.jump_fac = [0.5, 0.2, 0.1, 0.05]
+            self.jump_fac = [0.15, 0.1, 0.05]
         if self.lkl_fac == None:
-            self.lkl_fac = [1, 10, 200, 1000]
+            self.lkl_fac = [10, 200, 1000]
         if len(self.jump_fac) != len(self.lkl_fac):
             print("!!!!!!!!!\n!!!!!!!!!\n!!!!!!!!!")
             print("Error in run_minimizer: Lists passed for jumping factor and lkl factor are of different lengths. \
@@ -608,6 +617,44 @@ class lkl_prof:
             new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
             print("\n\n------------------> After minimizer rung {ith}, -logL minimized to  {logL} \n\n".format(
                 ith=i+1, logL=new_min_point['-logLike']))
+            
+        ##### Bonus step: run Minuit minimizer #####
+        
+        if run_minuit:
+            # NOTE: this will only work well if the minimizer outputs results that have correctly scaled params 
+            # MP rescales some params: omega_b (1e-2), A_s (1e-9) and a couple of PLC params 
+            # So this output needs to scale them back to normal, with omega_b of O(0.01), etc. 
+            # TK will update MP to do this correctly. Fix already there, need to turn print into replacement 
+
+            # Run minuit minimizer 
+            run_command = "mpirun -np 1 MontePython.py run -p {param} -o {output} -b {bf} -c {covmat} --minimize".format(
+                param=self.chains_dir+min_folder+'/log.param', 
+                output=self.chains_dir+min_folder+'/',
+                bf=self.chains_dir+prev_bf+'.bestfit', 
+                covmat=self.chains_dir+self.info_root+'.covmat'
+            )
+            run(run_command, shell=True)
+            # run a fake MCMC point at this minimum 
+                # Here, we need to run a fake chain at this minimized point first
+                # in order to create the .bestfit and .log files that play well with the rest of the code. 
+            run_command = "mpirun -np 1 MontePython.py run -p {param} -o {output} -b {bf} -c {covmat} -N {steps} -f {f}".format(
+                param=self.chains_dir+min_folder+'/log.param', 
+                output=self.chains_dir+min_folder+'/',
+                bf=self.chains_dir+min_folder+'/results.minimized', 
+                covmat=self.chains_dir+self.info_root+'.covmat',
+                steps=1, 
+                f = 0
+            )
+            run(run_command, shell=True)
+            # analyse 
+            run_command = "mpirun -np 1 MontePython.py info {folder} --keep-non-markovian --noplot".format(
+                folder=self.chains_dir+min_folder+'/'
+            )
+            run(run_command, shell=True)
+            # update and print minimum 
+            new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
+            print("\n\n------------------> After Minuit run, -logL minimized to  {logL} \n\n".format(
+                logL=new_min_point['-logLike']))
 
         return True
     
@@ -774,7 +821,7 @@ class lkl_prof:
 
         return self.current_prof_param
         
-    def run_lkl_prof(self, time_mins=False, N_min_steps=5000):
+    def run_lkl_prof(self, time_mins=False, N_min_steps=5000, run_minuit=False):
         """
         Run the likelihood profile loop. 
         Initialise time-keeping file if wanted. 
@@ -840,7 +887,8 @@ class lkl_prof:
 
             self.run_minimizer(prev_bf=self.info_root+self.pn_ext("_lkl_prof"), 
                                min_folder="lkl_prof" + self.pn_ext('/')[:-1],
-                               N_steps=N_min_steps)
+                               N_steps=N_min_steps, 
+                               run_minuit=run_minuit)
             self.update_and_save_min_output() 
 
             time_end = time()
