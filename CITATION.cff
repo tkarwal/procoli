@@ -1,0 +1,9 @@
+@software{lkl_prof,
+  author = {Karwal, Tanvi, Patel, Yashvi, Bartlett, Alexa, Smith, Tristan L. and Poulin, Vivian},
+  doi = {XXXXX/zenodo.XXXX},
+  month = {12},
+  title = {{Likelihood Profile Code}},
+  url = {https://github.com/tkarwal/lkl_prof/tree/v3_MP_mcmc},
+  version = {3.0.1},
+  year = {2023}
+}
