@@ -1,5 +1,8 @@
-from MP_classes_lkl_prof_functions import *
+import numpy as np
 
+from mp_procoli_functions import *
+# TODO fix imports, needs yaml_load_file from cobaya
+# TODO only import read_header and get_mp_bf_dict from mp_procoli_functions
 
 def read_header_as_list(filename):
     """
