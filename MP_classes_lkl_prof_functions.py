@@ -964,10 +964,18 @@ class lkl_prof:
         :return: full likelihood profile dictionary 
         """
         full_prof_dict = {}
+        
         full_lkl_prof_array = self.full_lkl_prof_array()
 
-        for param_num in range(len(self.param_order)):
-            full_prof_dict[self.param_order[param_num]] = full_lkl_prof_array[:,param_num]
+        pos_filename = self.chains_dir+self.info_root+'_+'+self.prof_param+'_lkl_profile.txt'
+        pos_lkl_prof_header = read_header_as_list(pos_filename)
+
+        for param_num in range(len(pos_lkl_prof_header)):
+            full_prof_dict[pos_lkl_prof_header[param_num]] = full_lkl_prof_array[:,param_num]
+        
+        # # Commented out following. Using file header to get param order
+        # for param_num in range(len(self.param_order)):
+        #     full_prof_dict[self.param_order[param_num]] = full_lkl_prof_array[:,param_num]
 
         return full_prof_dict
 
