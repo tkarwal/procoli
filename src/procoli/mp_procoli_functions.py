@@ -1,7 +1,6 @@
-import os
+import os, sys
 from copy import deepcopy
 from glob import glob
-from shutil import copy as file_copy
 from subprocess import run
 from time import time
 
@@ -9,63 +8,8 @@ import numpy as np
 from getdist import chains, mcsamples, plots
 from getdist.mcsamples import MCSamplesError
 
-
-def read_header_as_list(filename):
-    """
-    Read in header of file and save as list. 
-    Header can be comma or space delimited. 
-
-
-    :filename: full path to file, ideally
-
-    :return: list of elements of header 
-    """
-    with open(filename, 'r') as fc:
-        header = fc.readline()
-    if ',' in header:
-        out_list = [elem.strip() for elem in header[1:].split(',')]
-    else:
-        out_list = [elem.strip() for elem in header[2:].split(' ')]
-    out_list = list(filter(None, out_list))
-    
-    return out_list
-
-def get_MP_bf_dict(MP_bf_file):
-    """
-    Read in MontePython style best fit file and save as dictionary. 
-    
-    :MP_bf_file: full path to MP best fit file, ideally
-
-    :return: dictionary of {'param_names': best_fit_point}
-    """
-
-    MP_param_values = np.loadtxt(MP_bf_file)
-
-    MP_param_names = read_header_as_list(MP_bf_file)
-
-    MP_bf = dict(zip(MP_param_names, MP_param_values))
-
-    try:
-        with open(MP_bf_file[:-8]+'.log') as log_file:
-            last_line = log_file.readlines()[-1]
-            neg_logLike = float(last_line.split(":")[-1])
-            MP_bf['-logLike'] = neg_logLike
-    except FileNotFoundError:
-        pass
-
-    return MP_bf
-
-def rm_files_wildcared(path):
-    files = glob(path)
-
-    for file in files:
-        try:
-            os.remove(file)
-        except OSError:
-            print(f"Error while deleting {file}")
-
-    return True
-
+import procoli.procoli_io as pio 
+from procoli.procoli_errors import *
 
 class lkl_prof:
     
@@ -250,31 +194,32 @@ class lkl_prof:
             
         try:
             # TODO can probably check if it exists with the os module
-            np.loadtxt(f'{self.chains_dir}{self.info_root}.bestfit')
-            print("check_global_min: Found minimum with file name "+self.info_root)
-            np.loadtxt(f'{self.chains_dir}{self.info_root}.covmat')
-            print("check_global_min: Found covmat with file name "+self.info_root)
+            pio.load_mp_info_files(f'{self.chains_dir}{self.info_root}.bestfit')
+            print(f'check_global_min: Found minimum with file name {self.info_root}')
+            pio.load_mp_info_files(f'{self.chains_dir}{self.info_root}.covmat')
+            print(f'check_global_min: Found covmat with file name {self.info_root}')
             
             new_info_root = [x for x in self.chains_dir.split('/') if x][-1]
             if self.info_root != new_info_root:
-                _ = file_copy(f'{self.chains_dir}{self.info_root}.bestfit', f'{self.chains_dir}{new_info_root}.bestfit')
-                _ = file_copy(f'{self.chains_dir}{self.info_root}.log', f'{self.chains_dir}{new_info_root}.log')
-                _ = file_copy(f'{self.chains_dir}{self.info_root}.covmat', f'{self.chains_dir}{new_info_root}.covmat')
+                _ = pio.file_copy(f'{self.chains_dir}{self.info_root}.bestfit', f'{self.chains_dir}{new_info_root}.bestfit')
+                _ = pio.file_copy(f'{self.chains_dir}{self.info_root}.log', f'{self.chains_dir}{new_info_root}.log')
+                _ = pio.file_copy(f'{self.chains_dir}{self.info_root}.covmat', f'{self.chains_dir}{new_info_root}.covmat')
                 self.info_root = new_info_root
                 
             return True
         except OSError:
             try:
                 new_info_root = [x for x in self.chains_dir.split('/') if x][-1]
+                # TODO can we run montepython with mpirun directly from python?
                 run(f'mpirun -np 1 MontePython.py info {self.chains_dir} --keep-non-markovian --noplot --want-covmat', shell=True, check=True)
                 # TODO can probably check if it exists with the module
-                np.loadtxt(f'{self.chains_dir}{self.info_root}.bestfit')
+                pio.load_mp_info_files(f'{self.chains_dir}{self.info_root}.bestfit')
                 # TODO why change the info root?
                 self.info_root = new_info_root
-                print("check_global_min: Found minimum with file name "+self.info_root)
+                print(f'check_global_min: Found minimum with file name {self.info_root}')
                 return True 
             except OSError:
-                print("check_global_min: Cannot run MP info for global minimum. Something went wrong. ")
+                print('check_global_min: Cannot run MP info for global minimum. Something went wrong. ')
                 return False 
         
     def global_min(self, run_glob_min=False, N_min_steps=3000, run_minuit=False):
@@ -311,13 +256,13 @@ class lkl_prof:
             if self.lkl_fac == None:
                 self.lkl_fac =  [3, 4, 5, 10, 200, 1000]
 
-            os.makedirs(f'{self.chains_dir}global_min', exist_ok=True)
-            _ = file_copy(f'{self.chains_dir}log.param', f'{self.chains_dir}global_min/log.param')
+            pio.makedirs(f'{self.chains_dir}global_min', exist_ok=True)
+            _ = pio.file_copy(f'{self.chains_dir}log.param', f'{self.chains_dir}global_min/log.param')
             
             self.run_minimizer(min_folder='global_min', N_steps=N_min_steps, run_minuit=run_minuit)
 
-            _ = file_copy(f'{self.chains_dir}global_min/global_min.bestfit', f'{self.chains_dir}{self.info_root}.bestfit')
-            _ = file_copy(f'{self.chains_dir}global_min/global_min.log', f'{self.chains_dir}{self.info_root}.log')
+            _ = pio.file_copy(f'{self.chains_dir}global_min/global_min.bestfit', f'{self.chains_dir}{self.info_root}.bestfit')
+            _ = pio.file_copy(f'{self.chains_dir}global_min/global_min.log', f'{self.chains_dir}{self.info_root}.log')
 
         param_names, param_ML, MLs = self.read_minimum(extension='')
         self.global_ML = deepcopy(MLs)
@@ -336,15 +281,12 @@ class lkl_prof:
                     lkl_txt.write(f'\t {param_recorded}')
                 lkl_txt.write("\n")
 
-        lkl_prof_table = np.loadtxt(f'{self.chains_dir}{self.info_root}{extension}') 
+        lkl_prof_table = pio.load_mp_info_files(f'{self.chains_dir}{self.info_root}{extension}') 
 
         # TODO param order should inherit from file header, param order not matching should never cause the code to fail
         if lkl_prof_table.shape!=(0,):
             if not self.match_param_line(self.global_ML, loc=0):
-                print(f'global_min: Something went wrong. The first line of the lkl_profile.txt file which should be global ML does not match the global ML in file \n'
-                     f'{self.chains_dir}{self.info_root}.bestfit') 
-                # TODO why is this a FileExistsError?
-                raise FileExistsError
+                raise GlobalMLDifferenceError(f'{self.chains_dir}{self.info_root}')
         else: 
             self.write_MLs()
 
@@ -376,16 +318,16 @@ class lkl_prof:
         
         :return: List of parameter names, list of parameter ML values, dictionary of {'param_names': param_ML_value}
         """
-        # TODO possibly fix using the same variable name twice
-        extension=self.pn_ext(extension)
+
+        prefix_extension = self.pn_ext(extension)
         
         # TODO can probably make this a single read to dict
-        param_ML = np.loadtxt(f'{self.chains_dir}{self.info_root}{extension}.bestfit')
-        param_names = read_header_as_list(f'{self.chains_dir}{self.info_root}{extension}.bestfit')
+        param_ML = pio.load_mp_info_files(f'{self.chains_dir}{self.info_root}{prefix_extension}.bestfit')
+        param_names = pio.read_header_as_list(f'{self.chains_dir}{self.info_root}{prefix_extension}.bestfit')
 
         MLs = dict(zip(param_names, param_ML))
 
-        with open(f'{self.chains_dir}{self.info_root}{extension}.log') as log_file:
+        with open(f'{self.chains_dir}{self.info_root}{prefix_extension}.log') as log_file:
             last_line = log_file.readlines()[-1]
             neg_logLike = float(last_line.split(":")[-1])
 
@@ -408,16 +350,16 @@ class lkl_prof:
         :return: Dict of parameters
         """
 
-        extension=self.pn_ext(extension)
+        prefix_extension = self.pn_ext(extension)
 
-        lkl_prof_table = np.loadtxt(self.chains_dir + self.info_root + extension) 
+        lkl_prof_table = pio.load_mp_info_files(f'{self.chains_dir}{self.info_root}{prefix_extension}') 
         try:
             lkl_prof_table.shape[1] # check that lkl_prof_table has multiple rows
             lkl_prof_table = lkl_prof_table[loc, :]
         except IndexError:
             pass
         
-        self.param_names = read_header_as_list(self.chains_dir + self.info_root + extension)
+        self.param_names = pio.read_header_as_list(f'{self.chains_dir}{self.info_root}{prefix_extension}')
         
         MLs = dict(zip(self.param_names, lkl_prof_table))
         
@@ -436,13 +378,13 @@ class lkl_prof:
         """
         if MLs == None:
             MLs = self.MLs
-        extension=self.pn_ext(extension)
+        prefix_extension = self.pn_ext(extension)
         
-        with open(f'{self.chains_dir}{self.info_root}{extension}', 'a') as lkl_txt: 
+        with open(f'{self.chains_dir}{self.info_root}{prefix_extension}', 'a') as lkl_txt: 
             for param in self.param_order:
                 lkl_txt.write(f'\t {str(MLs[param])}')
             lkl_txt.write('\n')
-        lkl_prof_table = np.loadtxt(f'{self.chains_dir}{self.info_root}{extension}') 
+        lkl_prof_table = pio.load_mp_info_files(f'{self.chains_dir}{self.info_root}{prefix_extension}') 
         return lkl_prof_table.shape
     
     
@@ -457,9 +399,9 @@ class lkl_prof:
         :return: True if param_names match, else False
         """
         
-        extension=self.pn_ext(extension)
+        prefix_extension = self.pn_ext(extension)
         
-        params_recorded = read_header_as_list(f'{self.chains_dir}{self.info_root}{extension}')
+        params_recorded = pio.read_header_as_list(f'{self.chains_dir}{self.info_root}{prefix_extension}')
         
         # TODO this can probably be combined so you don't have to compare them against each other twice
         mismatched_params = [param for param in param_names if param not in params_recorded]
@@ -483,11 +425,7 @@ class lkl_prof:
             self.param_order = params_recorded
             return True
         else:
-            print('\nmatch_param_names: Error: existing file found at ' 
-                    f'\n{self.chains_dir}{self.info_root}{extension} ' 
-                    '\nbut parameters do not match expected.')
-            # TODO why is this a FileExistsError?  Why is it then followed by a return statement if the error is raised?
-            raise FileExistsError
+            raise ParamDifferenceError(f'{self.chains_dir}{self.info_root}{prefix_extension}')
             return False
     
     
@@ -504,13 +442,13 @@ class lkl_prof:
         :return: True if match, else False 
         """
 
-        extension=self.pn_ext(extension)
+        prefix_extension = self.pn_ext(extension)
 
         if param_names==None:
             param_names=self.param_order
 
-#         print("match_param_line: checking file {file}".format(file=self.chains_dir + self.info_root + extension) )
-        lkl_prof_table = np.loadtxt(f'{self.chains_dir}{self.info_root}{extension}') 
+#         print("match_param_line: checking file {file}".format(file=self.chains_dir + self.info_root + prefix_extension) )
+        lkl_prof_table = pio.load_mp_info_files(f'{self.chains_dir}{self.info_root}{prefix_extension}') 
         
         if lkl_prof_table.size==0:
             print("match_param_line: File empty ")
@@ -609,7 +547,7 @@ class lkl_prof:
             prev_bf = min_folder+'/'+min_folder 
             # switch to most recently produced bf file in the minimizer directory as bf root 
         # set new minimum 
-        new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
+        new_min_point = pio.get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
         print("\n\n------------------> After minimizer rung 1, -logL minimized to  {logL} \n\n".format(
             logL=new_min_point['-logLike']))
 
@@ -637,7 +575,7 @@ class lkl_prof:
             )
             run(run_command, shell=True)
             # set new minimum 
-            new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
+            new_min_point = pio.get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
             print("\n\n------------------> After minimizer rung {ith}, -logL minimized to  {logL} \n\n".format(
                 ith=i+1, logL=new_min_point['-logLike']))
             
@@ -675,7 +613,7 @@ class lkl_prof:
             )
             run(run_command, shell=True)
             # update and print minimum 
-            new_min_point = get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
+            new_min_point = pio.get_MP_bf_dict(self.chains_dir+prev_bf+'.bestfit')
             print("\n\n------------------> After Minuit run, -logL minimized to  {logL} \n\n".format(
                 logL=new_min_point['-logLike']))
 
@@ -706,17 +644,17 @@ class lkl_prof:
         global_lp = f'{self.chains_dir}log.param'
         full_lkl_dir = f'{self.chains_dir}{lkl_dir}{self.pn_ext("/")}'
 
-        os.makedirs(full_lkl_dir, exist_ok=True)
-        _ = file_copy(global_lp, full_lkl_dir)
+        pio.makedirs(full_lkl_dir, exist_ok=True)
+        _ = pio.file_copy(global_lp, full_lkl_dir)
                 
         try: 
             self.read_minimum()
         except OSError:
             # the lkl prof bf and lof files don't exist
             # copy global bf 
-            _ = file_copy(f'{self.chains_dir}{self.info_root}.bestfit', f'{self.chains_dir}{self.info_root}{self.pn_ext("_lkl_prof")}.bestfit')
+            _ = pio.file_copy(f'{self.chains_dir}{self.info_root}.bestfit', f'{self.chains_dir}{self.info_root}{self.pn_ext("_lkl_prof")}.bestfit')
             # copy global log 
-            _ = file_copy(f'{self.chains_dir}{self.info_root}.log', f'{self.chains_dir}{self.info_root}{self.pn_ext("_lkl_prof")}.log')
+            _ = pio.file_copy(f'{self.chains_dir}{self.info_root}.log', f'{self.chains_dir}{self.info_root}{self.pn_ext("_lkl_prof")}.log')
 
             # now this should work 
             self.read_minimum()
@@ -724,7 +662,7 @@ class lkl_prof:
         # # /!\ Used to be initialised to last entry of lkl prof txt file 
         # self.MLs = self.read_lkl_output()
         # # Copy last lkl profile txt point into the bestfit file:
-        # lkl_prof_header = read_header_as_list(self.info_root+self.pn_ext('_lkl_profile.txt'))
+        # lkl_prof_header = pio.read_header_as_list(self.info_root+self.pn_ext('_lkl_profile.txt'))
         # update_bf_to_last_point = self.info_root+self.pn_ext("_lkl_prof")+".bestfit"
         # with open(update_bf_to_last_point, 'w') as lkl_txt: 
         #     lkl_txt.write("#       ")
@@ -775,9 +713,7 @@ class lkl_prof:
                     f.write(line)
 
         if line_modified == False:
-            print(f'Error: increment_update_logparam: could not find line with profile lkl parameter {self.prof_param} in log.param at {lkl_lp}')
-            # TODO get red of the keyerror and just exit
-            raise KeyError
+            raise LogParamUpdateError(self.prof_param, lkl_lp)
 
         return updated_prof_param, prof_param_lp_line
     
@@ -792,7 +728,7 @@ class lkl_prof:
         """
         if lp_dir:
             lp_dir += self.pn_ext('/')
-        lp_file = lp_dir+"log.param"
+        lp_file = f'{lp_dir}log.param'
 
         with open(lp_file, 'r') as f:
             lkl_lp_lines = f.readlines()
@@ -821,7 +757,7 @@ class lkl_prof:
         :return: current value of the prof lkl param as a float 
 
         """
-        extension=self.pn_ext(extension)
+        prefix_extension = self.pn_ext(extension)
 
         pn_ext = self.pn_ext('/')
         min_output_bf = f'{self.chains_dir}lkl_prof{pn_ext}lkl_prof{pn_ext[:-1]}.bestfit'
@@ -832,15 +768,15 @@ class lkl_prof:
         bf_lines[0] = f'{bf_lines[0][:-1]},        {self.prof_param}\n'
         bf_lines[1] = f'{bf_lines[1][:-1]} {self.current_prof_param}\n'
 
-        save_output_bf = f'{self.chains_dir}{self.info_root}{extension}.bestfit'
+        save_output_bf = f'{self.chains_dir}{self.info_root}{prefix_extension}.bestfit'
 
         with open(save_output_bf, 'w') as f:
             for line in bf_lines:
                 f.write(line)
 
         from_file = f'{self.chains_dir}lkl_prof{pn_ext}lkl_prof{pn_ext[:-1]}.log'
-        to_file = f'{self.chains_dir}{self.info_root}{extension}.log'
-        _ = file_copy(from_file, to_file)
+        to_file = f'{self.chains_dir}{self.info_root}{prefix_extension}.log'
+        _ = pio.file_copy(from_file, to_file)
 
         return self.current_prof_param
         
@@ -873,15 +809,11 @@ class lkl_prof:
         :return: the value of the profile lkl parameter at the end of this loop 
         """
         if time_mins == True:
-            time_extension = '_time_stamps.txt'
-            time_extension = self.pn_ext(time_extension)
+            time_extension = self.pn_ext('_time_stamps.txt')
             with open(f'{self.chains_dir}{self.info_root}{time_extension}', 'a') as lkl_txt:
                 lkl_txt.write("#")
                 lkl_txt.write(f' {self.prof_param} \t step_size \t minimizer_time ')
                 lkl_txt.write("\n")
-
-        extension = '_lkl_prof'
-        extension = self.pn_ext(extension)
 
         while ((self.MLs[self.prof_param] <= self.prof_max) and (self.MLs[self.prof_param] >= self.prof_min)):
             last_entry_matches_current_params = self.match_param_line(self.MLs)
@@ -901,8 +833,8 @@ class lkl_prof:
             pn_ext_str = self.pn_ext('/')
             rm_chain_path = f'{self.chains_dir}lkl_prof{pn_ext_str}20*'
             rm_info_path = f'{self.chains_dir}lkl_prof{pn_ext_str}lkl_prof{pn_ext_str[:-1]}*'
-            rm_files_wildcared(rm_chain_path)
-            rm_files_wildcared(rm_info_path)
+            pio.rm_files_wildcared(rm_chain_path)
+            pio.rm_files_wildcared(rm_info_path)
 
             time_start = time()
 
@@ -947,28 +879,28 @@ class lkl_prof:
 
         :return: full likelihood profile array 
         """
-        # TODO use f-string
-        pos_filename = self.chains_dir+self.info_root+'_+'+self.prof_param+'_lkl_profile.txt'
-        neg_filename = self.chains_dir+self.info_root+'_-'+self.prof_param+'_lkl_profile.txt'
+
+        pos_filename = f'{self.chains_dir}{self.info_root}_+{self.prof_param}_lkl_profile.txt'
+        neg_filename = f'{self.chains_dir}{self.info_root}_-{self.prof_param}_lkl_profile.txt'
 
         
             
         try:
-            pos_header = read_header_as_list(pos_filename)
-            all_MLs_p = np.loadtxt(pos_filename)
+            pos_header = pio.read_header_as_list(pos_filename)
+            all_MLs_p = pio.load_mp_info_files(pos_filename)
             pos_file = True
         except FileNotFoundError:
             pos_file = False
         try:
-            neg_header = read_header_as_list(neg_filename)
-            all_MLs_n = np.loadtxt(neg_filename)
+            neg_header = pio.read_header_as_list(neg_filename)
+            all_MLs_n = pio.load_mp_info_files(neg_filename)
             if pos_file==True:
                 if pos_header==neg_header:
                     all_MLs = np.concatenate( (np.flip(all_MLs_n, 0),all_MLs_p) )
                 else:
-                    print("full_lkl_prof_array: the positive and negative files either have different parameters \
+                    print('full_lkl_prof_array: the positive and negative files either have different parameters \
                             or have them in different orders. \
-                            \nEither way, this function cannot correctly combine them. ")
+                            \nEither way, this function cannot correctly combine them. ')
                     return 0
             else:
                 all_MLs = np.flip(all_MLs_n, 0)
@@ -976,7 +908,7 @@ class lkl_prof:
             if pos_file == True:
                 all_MLs = all_MLs_p
             else:
-                print("full_lkl_prof_array: could not find files \n{pos} \n{neg} ".format(pos=pos_filename, neg=neg_filename))
+                print(f'full_lkl_prof_array: could not find files \n{pos_filename} \n{neg_filename} ')
         return all_MLs   
 
 
@@ -992,8 +924,8 @@ class lkl_prof:
         
         full_lkl_prof_array = self.full_lkl_prof_array()
 
-        pos_filename = self.chains_dir+self.info_root+'_+'+self.prof_param+'_lkl_profile.txt'
-        pos_lkl_prof_header = read_header_as_list(pos_filename)
+        pos_filename = f'{self.chains_dir}{self.info_root}_+{self.prof_param}_lkl_profile.txt'
+        pos_lkl_prof_header = pio.read_header_as_list(pos_filename)
 
         for param_num in range(len(pos_lkl_prof_header)):
             full_prof_dict[pos_lkl_prof_header[param_num]] = full_lkl_prof_array[:,param_num]
