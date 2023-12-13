@@ -41,7 +41,7 @@ def get_MP_bf_dict(MP_bf_file):
 
     MP_param_names = read_header_as_list(MP_bf_file)
 
-    MP_bf = dict(zip(MP_param_values, MP_param_names))
+    MP_bf = dict(zip(MP_param_names, MP_param_values))
 
     try:
         with open(MP_bf_file[:-8]+'.log') as log_file:
@@ -967,11 +967,15 @@ class lkl_prof:
         
         full_lkl_prof_array = self.full_lkl_prof_array()
 
-        pos_filename = self.chains_dir+self.info_root+'_+'+self.prof_param+'_lkl_profile.txt'
-        pos_lkl_prof_header = read_header_as_list(pos_filename)
+        try: 
+            pos_filename = self.chains_dir+self.info_root+'_+'+self.prof_param+'_lkl_profile.txt'
+            lkl_prof_header = read_header_as_list(pos_filename)
+        except FileNotFoundError: 
+            neg_filename = self.chains_dir+self.info_root+'_-'+self.prof_param+'_lkl_profile.txt'
+            lkl_prof_header = read_header_as_list(neg_filename)
 
-        for param_num in range(len(pos_lkl_prof_header)):
-            full_prof_dict[pos_lkl_prof_header[param_num]] = full_lkl_prof_array[:,param_num]
+        for param_num in range(len(lkl_prof_header)):
+            full_prof_dict[lkl_prof_header[param_num]] = full_lkl_prof_array[:,param_num]
         
         # # Commented out following. Using file header to get param order
         # for param_num in range(len(self.param_order)):
