@@ -1,9 +1,0 @@
-README.md
-pyproject.toml
-src/procoli/__init__.py
-src/procoli/mp_procoli_functions.py
-src/procoli/mp_to_cobaya_functions.py
-src/procoli.egg-info/PKG-INFO
-src/procoli.egg-info/SOURCES.txt
-src/procoli.egg-info/dependency_links.txt
-src/procoli.egg-info/top_level.txt
