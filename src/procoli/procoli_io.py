@@ -1,6 +1,6 @@
-from os import makedirs, remove
+from os import remove, makedirs
 from glob import glob
-from shutil import copy as file_copy
+from shutil import copy
 
 import numpy as np
 
@@ -40,9 +40,9 @@ def get_MP_bf_dict(MP_bf_file):
     MP_bf = dict(zip(MP_param_names, MP_param_values))
 
     try:
-        with open(MP_bf_file[:-8]+'.log') as log_file:
+        with open(f'{MP_bf_file[:-8]}.log') as log_file:
             last_line = log_file.readlines()[-1]
-            neg_logLike = float(last_line.split(":")[-1])
+            neg_logLike = float(last_line.split(':')[-1])
             MP_bf['-logLike'] = neg_logLike
     except FileNotFoundError:
         pass
@@ -56,9 +56,15 @@ def rm_files_wildcared(path):
         try:
             remove(file)
         except OSError:
-            print(f"Error while deleting {file}")
+            print(f'Error while deleting {file}')
 
     return True
 
 def load_mp_info_files(path):
     return np.loadtxt(path)
+
+def make_path(path, exist_ok=True):
+    return makedirs(path, exist_ok=exist_ok)
+
+def file_copy(target, destination):
+    return copy(target, destination)
