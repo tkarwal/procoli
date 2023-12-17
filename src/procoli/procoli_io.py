@@ -9,7 +9,6 @@ def read_header_as_list(filename):
     Read in header of file and save as list. 
     Header can be comma or space delimited. 
 
-
     :filename: full path to file, ideally
 
     :return: list of elements of header 
@@ -61,10 +60,51 @@ def rm_files_wildcared(path):
     return True
 
 def load_mp_info_files(path):
+    """
+    Wrapper to load files with np.loadtxt
+    
+    :path: Path of the file to load
+
+    :return: The loaded numpy array
+    """
+     
     return np.loadtxt(path)
 
+def save_mp_info_files(path, array, fmt='%.18e', delimiter=' '):
+    """
+    Wrapper to save numpy arrays
+    
+    :path: Path to save the file to
+    :array: Numpy array to save
+    :fmt: Formatting as a string or list of strings to save the data
+    :delimiter: Delimiter to use between data in the file
+
+    :return: The result of 
+    """
+
+    return np.savetxt(path, array, fmt=fmt, delimiter=delimiter)
+
 def make_path(path, exist_ok=True):
+    """
+    Wrapper around the os.makedirs function to make a directory
+    and the path to it
+    
+    :path: Path for the directory to create
+    :exist_ok: If true then don't throw an error if the directory exists
+
+    :return: Nothing
+    """
+        
     return makedirs(path, exist_ok=exist_ok)
 
 def file_copy(target, destination):
+    """
+    Wrapper around the shutil.copy function to copy files
+    
+    :target: Path of the target file
+    :destination: Path to where the file should be copied
+
+    :return: Nothing
+    """
+        
     return copy(target, destination)

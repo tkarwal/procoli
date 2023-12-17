@@ -24,7 +24,7 @@ class lkl_prof:
         
         self.chains_dir = chains_dir
         chains_full_path = os.path.abspath(self.chains_dir)
-        if info_root == None: 
+        if info_root is None: 
             info_root = [x for x in chains_full_path.split('/') if x][-1]
         self.info_root = info_root 
         
@@ -44,7 +44,7 @@ class lkl_prof:
         self.global_min_jump_fac = global_jump_fac
         self.global_min_lkl_fac = global_min_lkl_fac
         
-        self.covmat_file = self.chains_dir+self.info_root+'.covmat'
+        self.covmat_file = f'{self.chains_dir}{self.info_root}.covmat'
     
     def check_mcmc_chains(self, read_all_chains=False):
         """
@@ -525,7 +525,38 @@ class lkl_prof:
                     return False 
                 else:
                     return True
-    
+                
+    def update_neg_log_likelhood_chains(self, path, temp, chain_length, 
+                                        previous_chains=[]):
+        """
+        Update the chain files to show the correct negative log likelihood
+            when using the temperature parameter
+        Ignore chain files that have already been updated
+
+        :path: Path to the directory with the chain files
+        :temp: Float of the temperature parameter used 
+        :chain_length: Int of how many points are in each chain file 
+        :previous_chains: List of the previous chain files that have been updated
+            The dfault is an empty list
+
+        :return: All chain files that have been updated previously
+        """
+
+        if temp != 1:
+            chains = glob(f'{path}*_{chain_length}__*.txt')
+            for chain in chains:
+                if chain not in previous_chains:
+
+                    # read in the current chain, update the negative log likelihood
+                    # and then save the new data back to the original file
+                    chain_file = pio.load_mp_info_files(chain)
+                    row_size = chain_file.shape[1]
+                    frmt_list = ['%.4g', '%.6g'] + ['%.6e']*(row_size-2)
+                    chain_file[:,1] = chain_file[:,1]*temp
+                    pio.save_mp_info_files(chain, chain_file, fmt=frmt_list, 
+                                           delimiter='\t')
+                    
+        return chains
     
     def run_minimizer(self, min_folder="lkl_prof", prev_bf=None, N_steps=5000, 
                       run_minuit=False, jump_fac=None, lkl_fac=None):
@@ -574,9 +605,9 @@ class lkl_prof:
         # TODO clean this up
         # Check if jumping factors and lkl factors are defined, otherwise set to 
         # lkl profile run defaults 
-        if jump_fac == None:
+        if jump_fac is None:
             jump_fac = self.jump_fac
-        if lkl_fac == None:
+        if lkl_fac is None:
             lkl_fac = self.lkl_fac
         if len(jump_fac) != len(lkl_fac):
             jump_fac = [0.15, 0.1, 0.05] 
@@ -595,8 +626,9 @@ class lkl_prof:
         ##### First rung #####
 
         # MCMC
-        mp_run_command = 'mpirun -np {procs} MontePython.py run -p {param} -o {output} '\
-            '-b {bf} -c {covmat} -N {steps} -f {f} --lklfactor {lkl}'.format(
+        mp_run_command = 'mpirun -np {procs} MontePython.py run -p {param} '\
+            '-o {output} -b {bf} -c {covmat} -N {steps} -f {f} '\
+            '-T {temp}'.format(
             procs=self.processes,
             param=self.chains_dir+min_folder+'/log.param', 
             output=self.chains_dir+min_folder+'/',
@@ -604,9 +636,12 @@ class lkl_prof:
             covmat=self.chains_dir+self.info_root+'.covmat',
             steps=N_steps, 
             f = jump_fac[0], 
-            lkl = lkl_fac[0]
+            temp = 1./lkl_fac[0]
         )
+        previous_chains = glob(f'{self.chains_dir}{min_folder}/*_{N_steps}__*.txt')
         run(mp_run_command, shell=True, check=True)
+        previous_chains = self.update_neg_log_likelhood_chains(f'{self.chains_dir}{min_folder}/', 
+                                             1./lkl_fac[0], N_steps, previous_chains=previous_chains)
         # analyse 
         mp_info_command = 'mpirun -np 1 MontePython.py info {folder} '\
             '--keep-non-markovian --noplot'.format(
@@ -636,7 +671,7 @@ class lkl_prof:
             # MCMC
             run_command = 'mpirun -np {procs} MontePython.py run -p {param} '\
                     '-o {output} -b {bf} -c {covmat} -N {steps} -f {f} '\
-                    '--lklfactor {lkl}'.format(
+                    '-T {temp}'.format(
                 procs=self.processes,
                 param=self.chains_dir+min_folder+'/log.param', 
                 output=self.chains_dir+min_folder+'/',
@@ -644,9 +679,11 @@ class lkl_prof:
                 covmat=self.chains_dir+self.info_root+'.covmat',
                 steps=N_steps, 
                 f = jump_fac[i], 
-                lkl = lkl_fac[i]
+                temp = 1./lkl_fac[i]
             )
             run(run_command, shell=True)
+            previous_chains = self.update_neg_log_likelhood_chains(f'{self.chains_dir}{min_folder}/', 
+                                             1./lkl_fac[i], N_steps, previous_chains=previous_chains)
             # analyse 
             run_command = 'mpirun -np 1 MontePython.py info {folder} '\
                 '--keep-non-markovian --noplot'.format(
