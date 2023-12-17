@@ -14,13 +14,17 @@ from procoli.procoli_errors import *
 
 class lkl_prof:
     
-    def __init__(self, chains_dir, info_root, prof_param, processes=6, R_minus_1_wanted=0.05, 
+    def __init__(self, chains_dir, prof_param, info_root=None, processes=6, R_minus_1_wanted=0.05, 
                  mcmc_chain_settings={'ignore_rows' : 0.3}, 
                  prof_incr=None, prof_min=None, prof_max=None, 
-                 jump_fac=None, lkl_fac=None
+                 jump_fac=[0.15, 0.1, 0.05], lkl_fac=[10, 200, 1000], 
+                 global_jump_fac=[1, 0.8, 0.5, 0.2, 0.1, 0.05], global_min_lkl_fac=[3, 4, 5, 10, 200, 1000]
                 ):
         
         self.chains_dir = chains_dir
+        chains_full_path = os.path.abspath(self.chains_dir)
+        if info_root == None: 
+            info_root = [x for x in chains_full_path.split('/') if x][-1]
         self.info_root = info_root 
         
         self.processes = processes
@@ -35,6 +39,9 @@ class lkl_prof:
         
         self.jump_fac = jump_fac
         self.lkl_fac = lkl_fac
+        
+        self.global_min_jump_fac = global_jump_fac
+        self.global_min_lkl_fac = global_min_lkl_fac
         
         self.covmat_file = self.chains_dir+self.info_root+'.covmat'
     
@@ -248,19 +255,12 @@ class lkl_prof:
         self.check_global_min()
 
         if run_glob_min:
-            
-            # Check if jumping factors and lkl factors are defined, 
-            # otherwise set to defaults for global min 
-            # provided by Yashvi Patel
-            if self.jump_fac == None:
-                self.jump_fac = [1, 0.8, 0.5, 0.2, 0.1, 0.05]
-            if self.lkl_fac == None:
-                self.lkl_fac =  [3, 4, 5, 10, 200, 1000]
 
             pio.makedirs(f'{self.chains_dir}global_min', exist_ok=True)
             _ = pio.file_copy(f'{self.chains_dir}log.param', f'{self.chains_dir}global_min/log.param')
             
-            self.run_minimizer(min_folder='global_min', N_steps=N_min_steps, run_minuit=run_minuit)
+            self.run_minimizer(min_folder='global_min', N_steps=N_min_steps, run_minuit=run_minuit, \
+                               jump_fac=self.global_min_jump_fac, lkl_fac=self.global_min_lkl_fac)
 
             _ = pio.file_copy(f'{self.chains_dir}global_min/global_min.bestfit', f'{self.chains_dir}{self.info_root}.bestfit')
             _ = pio.file_copy(f'{self.chains_dir}global_min/global_min.log', f'{self.chains_dir}{self.info_root}.log')
@@ -469,7 +469,7 @@ class lkl_prof:
                     return True
     
     
-    def run_minimizer(self, min_folder="lkl_prof", prev_bf=None, N_steps=5000, run_minuit=False):
+    def run_minimizer(self, min_folder="lkl_prof", prev_bf=None, N_steps=5000, run_minuit=False, jump_fac=None, lkl_fac=None):
         """
         Run minimizer as described in 2107.10291, by incrementally running a finer MCMC 
         with a more discrening lklfactor that increases preference for moving towards higher likelihoods 
@@ -508,18 +508,20 @@ class lkl_prof:
             prev_bf = prev_bf[:-8]
 
         # TODO clean this up
-        # Check if jumping factors and lkl factors are defined, otherwise set to defaults, provided by Yashvi Patel
-        if self.jump_fac == None:
-            self.jump_fac = [0.15, 0.1, 0.05]
-        if self.lkl_fac == None:
-            self.lkl_fac = [10, 200, 1000]
-        if len(self.jump_fac) != len(self.lkl_fac):
+        # Check if jumping factors and lkl factors are defined, otherwise set to lkl profile run defaults 
+        if jump_fac == None:
+            jump_fac = self.jump_fac
+        if lkl_fac == None:
+            lkl_fac = self.lkl_fac
+        if len(jump_fac) != len(lkl_fac):
+            jump_fac = [0.15, 0.1, 0.05] # TODO: DEFAULTS HARD CODED HERE. 
+            lkl_fac = [10, 200, 1000]
             print("!!!!!!!!!\n!!!!!!!!!\n!!!!!!!!!")
-            print("Error in run_minimizer: Lists passed for jumping factor and lkl factor are of different lengths. \
-            Setting to defaults!!! ")
+            print(f"Error in run_minimizer: Lists passed for jumping factor and lkl factor are of different lengths. \n\
+            Setting to defaults!!! \n\
+            jumping factor list = {jump_fac} \n\
+            temperature list = {lkl_fac}")
             print("!!!!!!!!!\n!!!!!!!!!\n!!!!!!!!!")
-            self.jump_fac = [0.5, 0.2, 0.1, 0.05]
-            self.lkl_fac = [1, 10, 200, 1000]
 
         ##### First rung #####
 
@@ -531,8 +533,8 @@ class lkl_prof:
             bf=self.chains_dir+prev_bf+'.bestfit', 
             covmat=self.chains_dir+self.info_root+'.covmat',
             steps=N_steps, 
-            f = self.jump_fac[0], 
-            lkl = self.lkl_fac[0]
+            f = jump_fac[0], 
+            lkl = lkl_fac[0]
         )
         run(mp_run_command, shell=True, check=True)
         # analyse 
@@ -555,7 +557,7 @@ class lkl_prof:
 
         ##### Loop over other rungs #####
 
-        num_itrs = len(self.jump_fac)
+        num_itrs = len(jump_fac)
 
         for i in range(1,num_itrs):
             # MCMC
@@ -566,8 +568,8 @@ class lkl_prof:
                 bf=self.chains_dir+prev_bf+'.bestfit', 
                 covmat=self.chains_dir+self.info_root+'.covmat',
                 steps=N_steps, 
-                f = self.jump_fac[i], 
-                lkl = self.lkl_fac[i]
+                f = jump_fac[i], 
+                lkl = lkl_fac[i]
             )
             run(run_command, shell=True)
             # analyse 
