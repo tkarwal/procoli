@@ -743,6 +743,38 @@ class lkl_prof:
                   '{logL} \n\n'.format(logL=new_min_point['-logLike']))
 
         return True
+
+    def first_jump_fac_less_than_prof_incr(self):
+        """
+        Checks if the first element of the 'jump_fac' sequence in the simulated-annealing 
+        minimizer is less than the absolute value of the ratio between the step size
+        in the profile parameter 'prof_incr', and its 1sigma error from the covariance 
+        matrix. 
+    
+        :return: True if j < \Delta \theta_i / \sigma_i
+        """
+        covmat_header = pio.read_header_as_list(f'{self.chains_dir}{self.info_root}.covmat')
+        covmat = np.loadtxt(f'{self.chains_dir}{self.info_root}.covmat')    
+        prof_param_index = covmat_header.index(self.prof_param)
+        param_1sigma = covmat[prof_param_index,prof_param_index]**0.5
+    
+        is_j_less_than_incr = (self.jump_fac[0] < np.abs(self.prof_incr/param_1sigma) )
+        # we want j < \Delta \theta_i / \sigma_i
+    
+        if not is_j_less_than_incr:
+            print('   ___\n  // \\\\\n // ! \\\\\n//_____\\\\\n')
+            print('Warning: Increments in profile parameter are smaller than '\
+            'the first jumping factor in simulated annealing sequence. \n'\
+            'Ideally, we want first jumping factor < '\
+            '(increment in profile parameter)/(error in profile parameter) \n'\
+            'Currently we have j > Delta theta_i/ sigma_i with \n'\
+            f'{self.jump_fac[0]} > {np.abs(self.prof_incr)}/{param_1sigma} = {np.abs(self.prof_incr/param_1sigma)} \n'\
+            'This will result in a poor profile. \n'\
+            'Either increase the profile increment prof_incr, \n'\
+            'or decrease the first jumping factor in the simulated annealing sequence list jump_fac\n'\
+                 )
+        
+        return is_j_less_than_incr
     
     
     def init_lkl_prof(self, lkl_dir = "lkl_prof"):
@@ -806,6 +838,8 @@ class lkl_prof:
         #     lkl_txt.write(str(self.MLs[lkl_prof_header[0]]))
         #     for param in lkl_prof_header[1:]:
         #         lkl_txt.write("    "+str(self.MLs[param]) )
+
+        _ = self.first_jump_fac_less_than_prof_incr()
         
         return self.MLs[self.prof_param]
 
@@ -952,6 +986,8 @@ class lkl_prof:
         
         :return: the value of the profile lkl parameter at the end of this loop 
         """
+        _ = self.first_jump_fac_less_than_prof_incr()
+
         if time_mins is True:
             time_extension = self.pn_ext('_time_stamps.txt')
             with open(f'{self.chains_dir}{self.info_root}{time_extension}', 'a') as lkl_txt:
