@@ -13,10 +13,11 @@ name = 'procoli'
 version = '0.0.1'
 authors = [
     { name='Tanvi Karwal', email='karwal@uchicago.edu' },
+    { name='Daniel Pfeffer', email='dnpfeffe@gmail.com' }
 ]
 description = 'Put this in here'
 readme = 'README.md'
-license = {file = 'LICENSE'}
+license = {file = 'LICENSE.txt'}
 classifiers = [
     'Programming Language :: Python :: 3',
     'Operating System :: OS Independent',

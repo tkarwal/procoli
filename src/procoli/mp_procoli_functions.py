@@ -45,6 +45,50 @@ class lkl_prof:
         self.global_min_temp = global_min_temp
         
         self.covmat_file = f'{self.chains_dir}{self.info_root}.covmat'
+
+    def set_jump_fac(self, jump_fac):
+        """
+        Setter function for the jump factor for the likelihood profile
+
+        :jump_fac: A list of jump factors
+
+        :return: Nothing
+        """
+
+        self.jump_fac = jump_fac
+
+    def set_temp(self, temp):
+        """
+        Setter function for the jump factor for the likelihood profile
+
+        :temp: A list of temperatures
+
+        :return: Nothing
+        """
+
+        self.temp = temp
+
+    def set_global_jump_fac(self, global_jump_fac):
+        """
+        Setter function for the jump factor for the global mimimum
+
+        :global_jump_fac: A list of jump factors
+
+        :return: Nothing
+        """
+
+        self.global_jump_fac = global_jump_fac
+
+    def set_global_temp(self, global_min_temp):
+        """
+        Setter function for the jump factor for the global mimimum
+
+        :global_min_temp: A list of temperatures
+
+        :return: Nothing
+        """
+
+        self.global_min_temp = global_min_temp
     
     def check_mcmc_chains(self, read_all_chains=False):
         """
@@ -205,6 +249,45 @@ class lkl_prof:
             self.check_mcmc_chains(read_all_chains=True)
         return True
 
+    def check_global_min_has_lower_loglike(self, existing_min):
+        """
+        Check the negative log likelihoods of the global minimum bestfit and the 
+            info root bestfit to see which is better (lower negative log likelihood)
+        
+        :existing_min: True if global minimum was run and relevant files are accesible. 
+            Else False
+        
+        :return: If a global bestfit already exists with a lower 
+            log likehood than the info root bestfit
+        """
+
+        global_path = 'global_min/global_min'
+        global_min_is_better = False
+        if existing_min:
+            if os.path.exists(f'{self.chains_dir}{global_path}.bestfit'):
+                global_min_point = pio.get_MP_bf_dict(f'{self.chains_dir}{global_path}.bestfit')
+                info_root_point = pio.get_MP_bf_dict(f'{self.chains_dir}{self.info_root}.bestfit')
+                
+                if info_root_point['-logLike'] != global_min_point['-logLike']:
+                    print('check_global_min: WARNING!!!: global_min folder found with '\
+                            'a global_min.bestfit that is different from '\
+                            f'{self.info_root}.bestfit. Code will use the better '\
+                            'chi^2 of the two going forward.')
+
+                if info_root_point['-logLike'] >= global_min_point['-logLike']:
+                    _ = pio.file_copy(f'{self.chains_dir}{global_path}.bestfit', 
+                                        f'{self.chains_dir}{self.info_root}.bestfit')
+                    global_min_is_better = True
+                    print(f'check_global_min: WARNING!!!: global_min folder found '\
+                            'with a global_min.bestfit that was found to be a better '\
+                            f'chi^2 than the {self.info_root}.bestfit file. Code will '\
+                            f'replace the {self.info_root}.bestfit and '\
+                            f'{self.info_root}.log files with ones from the '\
+                            'global_min/global_min.bestfit and .log going forward.')
+                    
+        return global_min_is_better
+
+
     def check_global_min(self, mcmc_chains=None):
         """
         Check for .bestfit file. This does not necessarily indicate a global 
@@ -217,10 +300,15 @@ class lkl_prof:
         :mcmc_chains: getdist MCSamples instance 
         
         :return: True if global minimum was run and relevant files are accesible. 
-            Else False 
+            Else False, If a global bestfit already exists with a lower 
+            log likehood than the info root bestfit
         """
+        
         if mcmc_chains is None:
             mcmc_chains=self.mcmc_chains
+
+        global_min_exists = False
+        existing_min = False
             
         try:
             # TODO can probably check if it exists with the os module
@@ -239,7 +327,8 @@ class lkl_prof:
                                   f'{self.chains_dir}{new_info_root}.covmat')
                 self.info_root = new_info_root
                 
-            return True
+            global_min_exists = True
+            existing_min = True
         except OSError:
             try:
                 new_info_root = [x for x in self.chains_dir.split('/') if x][-1]
@@ -253,42 +342,59 @@ class lkl_prof:
                 self.info_root = new_info_root
                 print('check_global_min: Found minimum with file name '\
                       f'{self.info_root}')
-                return True 
+                global_min_exists = True 
             except OSError:
                 print('check_global_min: Cannot run MP info for global minimum. '\
-                      'Something went wrong. ')
-                return False 
+                      'Something went wrong. Either provide chains or provide .bestfit and .covmat file.')
+                global_min_exists = False 
+
+        global_min_is_better = self.check_global_min_has_lower_loglike(existing_min)
+
+        return global_min_exists, global_min_is_better
         
-    def global_min(self, run_glob_min=False, N_min_steps=3000, run_minuit=False):
+    def global_min(self, run_glob_min=None, N_min_steps=3000, run_minuit=False):
         """
         Check global minizer, run if wanted (default False), then write if not 
             already written 
 
         So: 
-        1) load / create the global minimum file. 
-        2) If we want a global min run, run the minimizer 
-        3) grab the global minimizer results 
-        4) check if we have a file with prof lkl values. 
+        1) Load / create the global minimum file. 
+        2) Check if the previous global minimum bestfit is 
+            better than the info_root bestfit
+        3) If we want a global min run, run the minimizer 
+        4) grab the global minimizer results 
+        5) check if we have a file with prof lkl values. 
             * If yes, check that it has the same parameters and in the right order. 
                 Proceed. 
             * If no file, start it and write the first line as param names. Proceed. 
             * If file yes, but parameters don't match, then print an error. Stop. 
-        5) check if global minimum params have already been written (first line of file)
+        6) check if global minimum params have already been written (first line of file)
             * If parameters are written, check that they match global minimum. 
                 Don't write them again
             * If parameters are written but don't match, spit out error. 
             * If no params written, add this current ML values for all parameters 
                 in append mode
             
-        :run_glob_min: Boolean for whether to run a global minimizer 
+        :run_glob_min: Boolean for whether to run a global minimizer.  
+            If True or False are given then choose to run the minimzer accordingly
+            If no value is given then let check_global_min decide by checking
+                if the global min has already been run and has a better bestfit
+        :N_min_steps: The number of steps the minimizer should use for each run
+        :run_minuit: Flag for the minimizer to use minuit
 
         :return: global maximum lkl dictionary 
         """
 
-        self.check_global_min()
+        # check to see if the global min exists already 
+        # and decide to run the minimizer accordingly
+        global_min_exists, global_min_is_better = self.check_global_min()
+        if run_glob_min is None:
+            if global_min_is_better:
+                run_glob_min = False
+            else:
+                run_glob_min = True
 
         if run_glob_min:
-
             pio.make_path(f'{self.chains_dir}global_min', exist_ok=True)
             _ = pio.file_copy(f'{self.chains_dir}log.param', 
                               f'{self.chains_dir}global_min/log.param')
@@ -786,19 +892,6 @@ class lkl_prof:
             this updates the location in prof_param that we're at for running prof lkls.
             Under MP, decided to do this instead of updating to the last line of the 
                     lkl output file
-                TK: fixed different bug in code which now no longer needs this update, 
-                    from what I can see.
-                Leaving this comment here for posterity / future fixes:
-                    I don't know why I did that. Ideally, we should be at the last 
-                        point that was acually saved..
-                    Oh, right. I did that because MP needs a .bf file to start the 
-                        next minimizer run with... 
-                    /!\ AMMEND THIS FUNCTION: should take last step in lkl prof txt 
-                        file and copy that into the bf to be used. 
-                    This also works for the very first step which should be the 
-                        global bf,
-                    which would be the last point in the lkl prof txt file if this is 
-                        the first step anyway 
         3) copy global bf into prof lkl output bf if the file doesn't exist 
 
         :lkl_dir: Leave the extension alone, thank you. 
