@@ -17,9 +17,9 @@ class lkl_prof:
     def __init__(self, chains_dir, prof_param, info_root=None, processes=6, 
                  R_minus_1_wanted=0.05, mcmc_chain_settings={'ignore_rows' : 0.3}, 
                  prof_incr=None, prof_min=None, prof_max=None, 
-                 jump_fac=[0.15, 0.1, 0.05], lkl_fac=[10, 200, 1000], 
+                 jump_fac=[0.15, 0.1, 0.05], temp=[0.1, 0.005, 0.001], 
                  global_jump_fac=[1, 0.8, 0.5, 0.2, 0.1, 0.05], 
-                 global_min_lkl_fac=[3, 4, 5, 10, 200, 1000]
+                 global_min_temp=[0.3333, 0.25, 0.2, 0.1, 0.005, 0.001]
                 ):
         
         self.chains_dir = chains_dir
@@ -39,10 +39,10 @@ class lkl_prof:
         self.prof_max = prof_max
         
         self.jump_fac = jump_fac
-        self.lkl_fac = lkl_fac
+        self.temp = temp
         
         self.global_min_jump_fac = global_jump_fac
-        self.global_min_lkl_fac = global_min_lkl_fac
+        self.global_min_temp = global_min_temp
         
         self.covmat_file = f'{self.chains_dir}{self.info_root}.covmat'
     
@@ -296,7 +296,7 @@ class lkl_prof:
             self.run_minimizer(min_folder='global_min', N_steps=N_min_steps, 
                                run_minuit=run_minuit, 
                                jump_fac=self.global_min_jump_fac, 
-                               lkl_fac=self.global_min_lkl_fac)
+                               temp=self.global_min_temp)
 
             _ = pio.file_copy(f'{self.chains_dir}global_min/global_min.bestfit', 
                               f'{self.chains_dir}{self.info_root}.bestfit')
@@ -559,7 +559,7 @@ class lkl_prof:
         return chains
     
     def run_minimizer(self, min_folder="lkl_prof", prev_bf=None, N_steps=5000, 
-                      run_minuit=False, jump_fac=None, lkl_fac=None):
+                      run_minuit=False, jump_fac=None, temp=None):
         """
         Run minimizer as described in 2107.10291, by incrementally running a finer MCMC 
         with a more discrening lklfactor that increases preference for moving towards 
@@ -607,20 +607,20 @@ class lkl_prof:
         # lkl profile run defaults 
         if jump_fac is None:
             jump_fac = self.jump_fac
-        if lkl_fac is None:
-            lkl_fac = self.lkl_fac
-        if len(jump_fac) != len(lkl_fac):
+        if temp is None:
+            temp = self.temp
+        if len(jump_fac) != len(temp):
             jump_fac = [0.15, 0.1, 0.05] 
             # TODO: DEFAULTS HARD CODED HERE. 
             # Move to init as defaults that the user should not know about 
             # and cannot change. 
-            lkl_fac = [10, 200, 1000]
+            temp = [0.1, 0.005, 0.001]
             print('!!!!!!!!!\n!!!!!!!!!\n!!!!!!!!!')
             print('Error in run_minimizer: Lists passed for jumping factor and lkl '\
             'factor are of different lengths. \n'\
             'Setting to defaults!!! \n'\
             f'jumping factor list = {jump_fac} \n'\
-            f'temperature list = {lkl_fac}')
+            f'temperature list = {temp}')
             print("!!!!!!!!!\n!!!!!!!!!\n!!!!!!!!!")
 
         ##### First rung #####
@@ -636,12 +636,12 @@ class lkl_prof:
             covmat=self.chains_dir+self.info_root+'.covmat',
             steps=N_steps, 
             f = jump_fac[0], 
-            temp = 1./lkl_fac[0]
+            temp = temp[0]
         )
         previous_chains = glob(f'{self.chains_dir}{min_folder}/*_{N_steps}__*.txt')
         run(mp_run_command, shell=True, check=True)
         previous_chains = self.update_neg_log_likelhood_chains(f'{self.chains_dir}{min_folder}/', 
-                                             1./lkl_fac[0], N_steps, previous_chains=previous_chains)
+                                             temp[0], N_steps, previous_chains=previous_chains)
         # analyse 
         mp_info_command = 'mpirun -np 1 MontePython.py info {folder} '\
             '--keep-non-markovian --noplot'.format(
@@ -679,11 +679,11 @@ class lkl_prof:
                 covmat=self.chains_dir+self.info_root+'.covmat',
                 steps=N_steps, 
                 f = jump_fac[i], 
-                temp = 1./lkl_fac[i]
+                temp = temp[i]
             )
             run(run_command, shell=True)
             previous_chains = self.update_neg_log_likelhood_chains(f'{self.chains_dir}{min_folder}/', 
-                                             1./lkl_fac[i], N_steps, previous_chains=previous_chains)
+                                             temp[i], N_steps, previous_chains=previous_chains)
             # analyse 
             run_command = 'mpirun -np 1 MontePython.py info {folder} '\
                 '--keep-non-markovian --noplot'.format(
