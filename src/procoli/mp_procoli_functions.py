@@ -13,8 +13,56 @@ from procoli.procoli_errors import (ParamDifferenceError, GlobalMLDifferenceErro
 
 
 class lkl_prof:
+    """
+    Class for profiling likelihoods from MontePython MCMC chains.
+
+    Parameters:
+    - chains_dir (str): Directory containing MCMC chains and log.param, OR containing .covmat, .bestfit and log.param files.
+    - prof_param (str): The parameter for which the likelihood will be profiled as recognised by MontePython in the log.param.
+    - prof_incr (float, optional): Increment for profiling prof_param. 
+    - prof_min (float, optional): Minimum value of prof_param for profiling. 
+    - prof_max (float, optional): Maximum value of prof_param for profiling. 
+    - info_root (str, optional): Information root for the chains directory. Defaults to the last part of the chains directory path. 
+      Provide this if your .covmat and .bestit files have a different filename than the name of the parent directory. 
+    - processes (int, optional): Number of parallel processes to use. Defaults to 5.
+    - R_minus_1_wanted (float, optional): The target R-1 value for chains. Defaults to 0.05. If this R-1 is not attained, 
+      the code prints a warning, but continues anyway. 
+    - mcmc_chain_settings (dict, optional): Settings for MCMC chains as understood by GetDist mcsamples.loadMCSamples. 
+      Defaults to {'ignore_rows': 0.3}.
+    - jump_fac (list, optional): List of jump factors for profile-likelihood simulated-annealing temperature ladder. 
+      Defaults to [0.15, 0.1, 0.05].
+    - temp (list, optional): List of temperature values for profile-likelihood simulated-annealing temperature ladder. 
+      Defaults to [0.1, 0.005, 0.001].
+    - global_jump_fac (list, optional): List of jump factors for global minimum temperature ladder. 
+      Defaults to [1, 0.8, 0.5, 0.2, 0.1, 0.05].
+    - global_min_temp (list, optional): List of minimum temperatures for global minimum temperature ladder. 
+      Defaults to [0.3333, 0.25, 0.2, 0.1, 0.005, 0.001].
+
+    Attributes:
+    - chains_dir (str): Directory containing MCMC chains.
+    - info_root (str): Information root for the chains directory.
+    - processes (int): Number of parallel processes to use.
+    - R_minus_1_wanted (float): The target R-1 value.
+    - mcmc_chain_settings (dict): Settings for MCMC chains.
+    - mcmc_chains (None or list): Placeholder for storing MCMC chains.
+    - prof_param (str): The parameter for which the likelihood will be profiled.
+    - prof_incr (float or None): Increment for profiling.
+    - prof_min (float or None): Minimum value for profiling.
+    - prof_max (float or None): Maximum value for profiling.
+    - jump_fac (list): List of jump factors for local temperature ladder.
+    - temp (list): List of temperature values for local temperature ladder.
+    - global_jump_fac (list): List of jump factors for global temperature ladder.
+    - global_min_temp (list): List of minimum temperatures for global temperature ladder.
+    - covmat_file (str): Full path to the covariance matrix file.
+
+    Example:
+    ```
+    profiler = lkl_prof(chains_dir='path/to/chains', prof_param='theta', processes=4)
+    ```
+
+    """
     
-    def __init__(self, chains_dir, prof_param, info_root=None, processes=6, 
+    def __init__(self, chains_dir, prof_param, info_root=None, processes=5, 
                  R_minus_1_wanted=0.05, mcmc_chain_settings={'ignore_rows' : 0.3}, 
                  prof_incr=None, prof_min=None, prof_max=None, 
                  jump_fac=[0.15, 0.1, 0.05], temp=[0.1, 0.005, 0.001], 
