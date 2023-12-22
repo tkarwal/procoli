@@ -216,13 +216,13 @@ def segement_list(list_of_files, size_each_list):
         seg_list.append(list_of_files[i:i + size_each_list])
     return seg_list
 
-def get_SA_step_chains_chi2(dir_chains,chains_per_step=6, chain_len=3000):
+def get_SA_step_chains_chi2(dir_chains,chains_per_step=5, chain_len=3000):
     """
     Reads and organizes Markov chain data from simulated-annealing steps for chi-squared values.
 
     Parameters:
     - dir_chains (str): The directory path where the chain files are located.
-    - chains_per_step (int, optional): The number of chains per simulated annealing step. Default is 6.
+    - chains_per_step (int, optional): The number of chains per simulated annealing step. Default is 5.
     - chain_len (int, optional): The length of each chain. Default is 3000.
 
     Returns:
@@ -246,7 +246,45 @@ def get_SA_step_chains_chi2(dir_chains,chains_per_step=6, chain_len=3000):
             chains_per_SA_step[SA_step].append(2*np.loadtxt(chain, usecols=(1,)))
     return chains_per_SA_step
 
-def plot_SA_min_chains(SA_chains_per_step, alpha=0.2,colour='cornflowerblue', readj_chi2=0.001):
+
+def get_SA_step_chains(dir_chains,chains_per_step=5, chain_len=3000):
+    """
+    Extracts and organizes chains from simulated annealing steps.
+
+    Parameters:
+    - dir_chains (str): Directory path where the chain files are located.
+    - chains_per_step (int, optional): Number of chains per simulated annealing step. Defaults to 5.
+    - chain_len (int, optional): Length of the chains. Defaults to 3000.
+
+    Returns:
+    Tuple: A tuple containing parameter names and chains organized by simulated annealing steps.
+    
+    - param_names (list): List of parameter names, assuming 'weight', '-logLike',are the first two paraemters, 
+      followed by cosmological and nauisance parameters.
+    - chains_per_SA_step (dict): Dictionary where keys are simulated annealing steps, and values are lists of chains.
+      Each chain is represented as a NumPy array.
+
+    Example:
+    ```
+    param_names, chains_per_SA_step = get_SA_step_chains('/path/to/chain/files/', chains_per_step=5, chain_len=3000)
+    ```
+    """
+    param_names = ['weight', '-logLike'] + list(np.loadtxt(glob(dir_chains+'*'+str(chain_len)+'*.paramnames')[0], usecols=(0,),dtype=str))
+
+    all_chain_files = glob(dir_chains+'*'+str(chain_len)+'*.txt')
+    all_chain_files.sort(key=os.path.getmtime)
+    files_SA_step = segement_list(all_chain_files, chains_per_step)
+
+    chains_per_SA_step = {}
+    for SA_step in range(len(files_SA_step)):
+        chains_per_SA_step[SA_step] = []
+        for chain in files_SA_step[SA_step]:
+            chains_per_SA_step[SA_step].append(np.loadtxt(chain, ) )
+            
+    return param_names, chains_per_SA_step
+
+
+def plot_SA_min_chains(SA_chains_per_step, alpha=0.2,colour='cornflowerblue', readj_chi2=0.0001):
     """
     Plots Markov chain data for simulated annealing steps, focusing on the minimum chi-squared values.
 
@@ -279,3 +317,37 @@ def plot_SA_min_chains(SA_chains_per_step, alpha=0.2,colour='cornflowerblue', re
             plt.plot( np.linspace(0, len(chain), len(chain)+1)[:-1]+x_start, chain-min_chi2, alpha=alpha,c=colour)
     plt.ylabel(r'$\Delta \chi^2$')
     plt.xlabel('MCMC step')        
+    
+def plot_SA_chains(SA_chains_per_step, param_list, param_to_plot, alpha=0.2,colour='cornflowerblue', ):
+    """
+    Plots the evolution of a specific parameter over MCMC steps for simulated annealing (SA) chains.
+
+    Parameters:
+    - SA_chains_per_step (dict): Dictionary where keys are simulated annealing steps, and values are lists of SA chains.
+      Each chain is represented as a NumPy array.
+    - params_list (list): list of parameter names in the same order as in the rows of chains. Should be 
+      produced using a .paramnames file, or from the `get_SA_step_chains' function.
+    - param_to_plot (str): The name of the parameter to plot, matching names in the .paramnames file
+    - alpha (float, optional): The transparency of the plotted lines. Defaults to 0.2.
+    - colour (str, optional): Color of the plotted lines. Defaults to 'cornflowerblue'.
+
+    Returns:
+    None
+
+    Example:
+    ```
+    plot_SA_min_chains(SA_chains_per_step, 'some_parameter', alpha=0.5, colour='red')
+    ```
+    The plot shows the evolution of the specified parameter over MCMC steps for each SA chain, with transparency
+    and color options. The x-axis represents the cumulative MCMC steps, and the y-axis represents the change in
+    param_to_plot values.
+
+    """
+    param_index = param_list.index(param_to_plot)
+
+    for step in SA_chains_per_step:
+        x_start = sum( [max([len(i) for i in SA_chains_per_step[step]]) for step in range(0,step) ] )
+        for chain in SA_chains_per_step[step]:
+            plt.plot( np.linspace(0, len(chain), len(chain)+1)[:-1]+x_start, chain[:,param_index], alpha=alpha,c=colour)
+    plt.ylabel(param_to_plot)
+    plt.xlabel('MCMC step') 
