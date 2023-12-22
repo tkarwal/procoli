@@ -49,6 +49,14 @@ def get_MP_bf_dict(MP_bf_file):
     return MP_bf
 
 def rm_files_wildcared(path):
+    """
+    Wrapper to remove files
+    
+    :path: Path of the directory to remove files from
+
+    :return: The True
+    """
+
     files = glob(path)
 
     for file in files:
@@ -58,6 +66,48 @@ def rm_files_wildcared(path):
             print(f'Error while deleting {file}')
 
     return True
+
+def read_file(path):
+    """
+    Wrapper to load files as a single string
+    
+    :path: Path of the file to load
+
+    :return: The files text
+    """
+
+    with open(path, 'r') as f:
+            file_txt = f.read()
+
+    return file_txt
+
+def readlines_file(path):
+    """
+    Wrapper to load files as a list by line
+    
+    :path: Path of the file to load
+
+    :return: The files text
+    """
+
+    with open(path, 'r') as f:
+            file_txt = f.readlines()
+
+    return file_txt
+
+def save_file(path, lines):
+    """
+    Wrapper to write files as a list by line
+    
+    :path: Path of the file to save to
+    :lines: List of strings to save to the file
+
+    :return: Nothing
+    """
+
+    with open(path, 'w') as f:
+            for line in lines:
+                f.write(line)
 
 def load_mp_info_files(path):
     """

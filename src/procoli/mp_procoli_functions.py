@@ -1062,13 +1062,15 @@ class lkl_prof:
     
     def get_experiments(self):
         """
-        Extracts a list of likelihoods from the log.param file in the specified chains directory.
+        Extracts a list of likelihoods from the log.param file in the specified 
+        chains directory.
     
         Returns:
         list or None: A list of likelihoods if found, otherwise None.
     
         Raises:
-        FileNotFoundError: If the log.param file is not found in the specified chains directory.
+        FileNotFoundError: If the log.param file is not found in the specified 
+        chains directory.
     
         Example:
         >>> profile = lkl_prof(chains_dir='/path/to/chains/', ...)
@@ -1077,8 +1079,7 @@ class lkl_prof:
         ['Planck_highl_TTTEEE', 'Planck_lowl_EE', 'Planck_lowl_TT']
         """
         # Read the text file
-        with open(f'{self.chains_dir}log.param', 'r') as lp:
-            lp_file_content = lp.read()
+        lp_file_content = pio.read_file(f'{self.chains_dir}log.param')
         # Define the pattern for finding likelihoods
         experiments_line = re.compile(r"data\.experiments=\[([^\]]+)\]")
         # Use regular expression to find the likelihoods
@@ -1087,14 +1088,16 @@ class lkl_prof:
             # Extract the likelihoods from the matched group
             likelihoods_str = match.group(1)
             # Split the likelihoods string into a list
-            likelihoods = [lkl.strip(' ').strip("'") for lkl in likelihoods_str.split(',')]
+            likelihoods = [lkl.strip(' ').strip("'") 
+                           for lkl in likelihoods_str.split(',')]
             # Print the extracted likelihoods
             # print("Likelihoods of interest:")
             # for lkl in likelihoods:
             #     print(lkl)
         else:
             likelihoods = None
-            print(f'Error in get_experiments: No likelihoods found in the file {self.chains_dir}log.param.')
+            print(f'Error in get_experiments: No likelihoods found in the file ' \
+                  f'{self.chains_dir}log.param.')
         self.likelihoods = likelihoods
         return likelihoods
 
@@ -1122,7 +1125,8 @@ class lkl_prof:
         """
         mp_run_command = 'mpirun -np 1 MontePython.py -N 1 -f 0 --display-each-chi2 '\
         f'-o {output_dir} -p {self.chains_dir}log.param -b {param_point_bf_file}' 
-        captured_output = run(mp_run_command, shell=True, check=True, capture_output=True).stdout
+        captured_output = run(mp_run_command, shell=True, check=True, 
+                              capture_output=True).stdout
         # Turn our b-string into a normal string 
         chi2_per_exp_output = captured_output.decode('utf-8')
         return chi2_per_exp_output
@@ -1133,13 +1137,16 @@ class lkl_prof:
         Extract and return chi^2 values for each likelihood from a given output string.
     
         Args:
-        likelihoods (list, optional): A list of likelihood names. Defaults to None, in which case
-            it uses the likelihoods attribute of the class instance.
-        chi2_per_exp_output (str): The output string from a MontePython --display-each-chi2 run
-            containing effective chi^2 values for different likelihoods.
+        likelihoods (list, optional): A list of likelihood names. 
+            Defaults to None, in which case it uses the likelihoods attribute of 
+            the class instance.
+        chi2_per_exp_output (str): The output string from a 
+            MontePython --display-each-chi2 
+            run containing effective chi^2 values for different likelihoods.
     
         Returns:
-        dict: A dictionary where keys are likelihood names and values are corresponding chi^2 values.
+        dict: A dictionary where keys are likelihood names and values are 
+            corresponding chi^2 values.
     
         Example:
         >>> profile = lkl_prof(chains_dir='/path/to/chains/', ...)
@@ -1148,7 +1155,8 @@ class lkl_prof:
                                ... -> for Planck_lowl_EE : ... chi2eff= 67.89 ..."
         >>> chi2_dict = profile.get_chi2_per_exp_dict(chi2_output_str)
         >>> print(chi2_dict)
-        {'Planck_highl_TTTEEE': 2400.00, 'Planck_lowl_EE': 400.00, 'Planck_lowl_TT': 25.00}
+        {'Planck_highl_TTTEEE': 2400.00, 'Planck_lowl_EE': 400.00, 
+            'Planck_lowl_TT': 25.00}
         """
         
         if likelihoods is None:
@@ -1187,17 +1195,14 @@ class lkl_prof:
         min_output_bf = f'{self.chains_dir}lkl_prof{pn_ext}'\
             f'lkl_prof{pn_ext[:-1]}.bestfit'
 
-        with open(min_output_bf, 'r') as f:
-            bf_lines = f.readlines()
+        bf_lines = pio.readlines_file(min_output_bf)
 
         bf_lines[0] = f'{bf_lines[0][:-1]},        {self.prof_param}\n'
         bf_lines[1] = f'{bf_lines[1][:-1]} {self.current_prof_param}\n'
 
         save_output_bf = f'{self.chains_dir}{self.info_root}{prefix_extension}.bestfit'
 
-        with open(save_output_bf, 'w') as f:
-            for line in bf_lines:
-                f.write(line)
+        pio.save_file(save_output_bf, bf_lines)
 
         from_file = f'{self.chains_dir}lkl_prof{pn_ext}lkl_prof{pn_ext[:-1]}.log'
         to_file = f'{self.chains_dir}{self.info_root}{prefix_extension}.log'
