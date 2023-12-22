@@ -108,3 +108,31 @@ def file_copy(target, destination):
     """
         
     return copy(target, destination)
+
+def write_bf_dict_to_file(bf_dict, bf_file):
+    """
+    Write a best-fit dictionary to a file in the style of MontePython .bestfit files.
+
+    Args:
+    best_fit_dict (dict): A dictionary containing parameter names as keys 
+      and their corresponding best-fit values.
+    bf_file (str): The path to the file where the best-fit dictionary 
+      will be written.
+
+    Returns:
+    str: The path to the file where the best-fit dictionary has been written.
+
+    Example:
+    >>> best_fit_params = {'param1': 0.123, 'param2': 1.456, 'param3': 2.789}
+    >>> bf_file_path = '/path/to/best_fit_results.bestfit'
+    >>> write_bf_dict_to_file(best_fit_params, bf_file_path)
+    '/path/to/best_fit_results.bestfit'
+    """
+    params_line = '#      '+',      '.join([key for key in bf_dict])+'\n'
+    values_line = '      '.join([str(bf_dict[key]) for key in bf_dict])
+
+    with open(bf_file, 'w') as f:
+        f.write(params_line)
+        f.write(values_line)
+        
+    return bf_file

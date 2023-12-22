@@ -3,6 +3,7 @@ from copy import deepcopy
 from glob import glob
 from subprocess import run
 from time import time
+import re
 
 import numpy as np
 from getdist import mcsamples
@@ -1057,7 +1058,118 @@ class lkl_prof:
                 break
 
         return prof_param_value
+
     
+    def get_experiments(self):
+        """
+        Extracts a list of likelihoods from the log.param file in the specified chains directory.
+    
+        Returns:
+        list or None: A list of likelihoods if found, otherwise None.
+    
+        Raises:
+        FileNotFoundError: If the log.param file is not found in the specified chains directory.
+    
+        Example:
+        >>> profile = lkl_prof(chains_dir='/path/to/chains/', ...)
+        >>> likelihoods = profile.get_experiments()
+        >>> print(likelihoods)
+        ['Planck_highl_TTTEEE', 'Planck_lowl_EE', 'Planck_lowl_TT']
+        """
+        # Read the text file
+        with open(f'{self.chains_dir}log.param', 'r') as lp:
+            lp_file_content = lp.read()
+        # Define the pattern for finding likelihoods
+        experiments_line = re.compile(r"data\.experiments=\[([^\]]+)\]")
+        # Use regular expression to find the likelihoods
+        match = experiments_line.search(lp_file_content)
+        if match:
+            # Extract the likelihoods from the matched group
+            likelihoods_str = match.group(1)
+            # Split the likelihoods string into a list
+            likelihoods = [lkl.strip(' ').strip("'") for lkl in likelihoods_str.split(',')]
+            # Print the extracted likelihoods
+            # print("Likelihoods of interest:")
+            # for lkl in likelihoods:
+            #     print(lkl)
+        else:
+            likelihoods = None
+            print(f'Error in get_experiments: No likelihoods found in the file {self.chains_dir}log.param.')
+        self.likelihoods = likelihoods
+        return likelihoods
+
+    
+    def MP_run_chi2_per_exp_at_point(self, output_dir, param_point_bf_file):
+        """
+        Run MontePython to calculate and display chi^2 values for each likelihood 
+        at a specific parameter point.
+    
+        Args:
+        output_dir (str): The directory to store the output files from the MontePython run.
+        param_point_bf_file (str): The file containing the best-fit parameter point 
+          for which chi^2 values will be calculated.
+    
+        Returns:
+        str: The output string from the MontePython run, 
+          containing effective chi^2 values for different likelihoods.
+    
+        Example:
+        >>> output_directory = '/path/to/output/'
+        >>> best_fit_param_file = '/path/to/best_fit.bestfit'
+        >>> chi2_output_str = profile.MP_run_chi2_per_exp_at_point(output_directory, best_fit_param_file)
+        >>> print(chi2_output_str)
+        "... -> for Planck_highl_TTTEEE : ... chi2eff= 123.45 ... -> for Planck_lowl_EE : ... chi2eff= 67.89 ..."
+        """
+        mp_run_command = 'mpirun -np 1 MontePython.py -N 1 -f 0 --display-each-chi2 '\
+        f'-o {output_dir} -p {self.chains_dir}log.param -b {param_point_bf_file}' 
+        captured_output = run(mp_run_command, shell=True, check=True, capture_output=True).stdout
+        # Turn our b-string into a normal string 
+        chi2_per_exp_output = captured_output.decode('utf-8')
+        return chi2_per_exp_output
+
+    
+    def get_chi2_per_exp_dict(self, chi2_per_exp_output, likelihoods=None):
+        """
+        Extract and return chi^2 values for each likelihood from a given output string.
+    
+        Args:
+        likelihoods (list, optional): A list of likelihood names. Defaults to None, in which case
+            it uses the likelihoods attribute of the class instance.
+        chi2_per_exp_output (str): The output string from a MontePython --display-each-chi2 run
+            containing effective chi^2 values for different likelihoods.
+    
+        Returns:
+        dict: A dictionary where keys are likelihood names and values are corresponding chi^2 values.
+    
+        Example:
+        >>> profile = lkl_prof(chains_dir='/path/to/chains/', ...)
+        >>> likelihood_list = profile.get_experiments()
+        >>> chi2_output_str = "... -> for Planck_highl_TTTEEE : ... chi2eff= 123.45 
+                               ... -> for Planck_lowl_EE : ... chi2eff= 67.89 ..."
+        >>> chi2_dict = profile.get_chi2_per_exp_dict(chi2_output_str)
+        >>> print(chi2_dict)
+        {'Planck_highl_TTTEEE': 2400.00, 'Planck_lowl_EE': 400.00, 'Planck_lowl_TT': 25.00}
+        """
+        
+        if likelihoods is None:
+            likelihoods = self.likelihoods
+        # Initialize a dictionary to store chi2eff values for each likelihood
+        chi2eff_values = {}
+        # Iterate over likelihoods
+        for lkl in likelihoods:
+            # Define the reg expression pattern for finding chi2eff value
+            pattern = re.compile(fr"-> for  {lkl} : .* chi2eff= ([0-9.-]+)")
+            # Use regular expression to find the chi2eff value
+            match = pattern.search(chi2_per_exp_output)
+            
+            if match:
+                # Convert the matched value to float and store in the dictionary
+                chi2eff_values[lkl] = float(match.group(1))
+            else:
+                chi2eff_values[lkl] = None
+        return chi2eff_values
+
+        
     def update_and_save_min_output(self, extension='_lkl_prof'):
         """
         Function to add the profile lkl param to the output bf file, 
@@ -1092,7 +1204,8 @@ class lkl_prof:
         _ = pio.file_copy(from_file, to_file)
 
         return self.current_prof_param
-        
+
+    
     def run_lkl_prof(self, time_mins=False, N_min_steps=5000, run_minuit=False):
         """
         Run the likelihood profile loop. 
