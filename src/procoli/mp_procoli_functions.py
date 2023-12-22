@@ -14,7 +14,7 @@ from procoli.procoli_errors import (ParamDifferenceError, GlobalMLDifferenceErro
 
 class lkl_prof:
     
-    def __init__(self, chains_dir, prof_param, info_root=None, processes=6, 
+    def __init__(self, chains_dir, prof_param, info_root=None, processes=5, 
                  R_minus_1_wanted=0.05, mcmc_chain_settings={'ignore_rows' : 0.3}, 
                  prof_incr=None, prof_min=None, prof_max=None, 
                  jump_fac=[0.15, 0.1, 0.05], temp=[0.1, 0.005, 0.001], 
@@ -279,9 +279,9 @@ class lkl_prof:
                                         f'{self.chains_dir}{self.info_root}.bestfit')
                     global_min_is_better = True
                     print(f'check_global_min: WARNING!!!: global_min folder found '\
-                            'with a global_min.bestfit that was found to be a better '\
-                            f'chi^2 than the {self.info_root}.bestfit file. Code will '\
-                            f'replace the {self.info_root}.bestfit and '\
+                            'with a global_min.bestfit that was found to be as good '\
+                            f'or a better chi^2 than the {self.info_root}.bestfit file. '\
+                            f'Code will replace the {self.info_root}.bestfit and '\
                             f'{self.info_root}.log files with ones from the '\
                             'global_min/global_min.bestfit and .log going forward.')
                     
