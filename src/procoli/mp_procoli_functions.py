@@ -1177,6 +1177,46 @@ class lkl_prof:
                 chi2eff_values[lkl] = None
         return chi2eff_values
 
+    def update_MLs_chi2_per_exp(self, param_point):
+        """
+        Update a parameter point with corresponding chi^2 values for 
+        each likelihood using MontePython.
+        We run MontePython at the param_point dictionary, get chi2 per 
+        experiment and output a dictionary of the param and chi2 values. 
+    
+        Args:
+        param_point (dict): A dictionary representing a point in the parameter space.
+    
+        Returns:
+        dict: A dictionary containing the original parameter point along with the 
+        chi^2 values for each likelihood.
+    
+        Example:
+        >>> parameter_point = {'param1': 1.0, 'param2': 2.0, 'param3': 3.0}
+        >>> updated_point = update_MLs_chi2_per_exp(parameter_point)
+        >>> print(updated_point)
+        {'param1': 1.0, 'param2': 2.0, 'param3': 3.0, 'Planck_highl_TTTEEE': 2400.00, 'Planck_lowl_EE': 400.00, 'Planck_lowl_TT': 25.00}
+        """
+        # set likelihoods variable from log.param 
+        self.get_experiments()
+        
+        # set location for running this point 
+        save_output_bf_loc = f'{self.chains_dir}chi2_per_exp/'
+        pio.make_path(save_output_bf_loc)
+        # set bf file for running file 
+        save_output_bf_file = save_output_bf_loc+'chi2_per_exp.bestfit'
+    
+        # Write this point to a MP style .bestfit file 
+        pio.write_bf_dict_to_file(param_point, save_output_bf_file)
+        # Run MP at this point and get chi2 values from output as dict 
+        chi2_per_exp_output = self.MP_run_chi2_per_exp_at_point(output_dir=save_output_bf_loc, param_point_bf_file=save_output_bf_file)
+        chi2eff_values = self.get_chi2_per_exp_dict(chi2_per_exp_output)
+        # new dictionary with passed parameter points and chi2eff values 
+        params_and_chi2s = deepcopy(param_point)
+        params_and_chi2s.update(chi2eff_values)
+    
+        return params_and_chi2s
+
         
     def update_and_save_min_output(self, extension='_lkl_prof'):
         """
