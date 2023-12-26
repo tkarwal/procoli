@@ -459,8 +459,12 @@ class lkl_prof:
                               f'{self.chains_dir}{self.info_root}.log')
 
         param_names, param_ML, MLs = self.read_minimum(extension='')
-        self.global_ML = deepcopy(MLs)
-        self.param_order = param_names.tolist()
+        # Additional code to get chi2 per experiment 
+        MLs_and_chi2 = self.update_MLs_chi2_per_exp(MLs)
+        self.param_order = [key for key in MLs_and_chi2]
+        
+        self.global_ML = deepcopy(MLs_and_chi2)
+        # self.param_order = param_names.tolist()
 
         extension = '_lkl_profile.txt' 
         extension = self.pn_ext(extension)
@@ -484,7 +488,7 @@ class lkl_prof:
             if not self.match_param_line(self.global_ML, loc=0):
                 raise GlobalMLDifferenceError(f'{self.chains_dir}{self.info_root}')
         else: 
-            self.write_MLs()
+            self.write_MLs(MLs_and_chi2)
 
         return self.global_ML
         
@@ -656,7 +660,14 @@ class lkl_prof:
         prefix_extension = self.pn_ext(extension)
 
         if param_names is None:
-            param_names=self.param_order
+            # param_names=self.param_order
+            try:
+                param_names = [i for i in self.param_order if i not in self.likelihoods]
+                param_names.remove('Total')
+            except AttributeError:
+                pass
+            except ValueError:
+                pass
 
         # print('match_param_line: checking file '\
         #       f'{self.chains_dir}{self.info_root}{prefix_extension}')
@@ -1175,6 +1186,17 @@ class lkl_prof:
                 chi2eff_values[lkl] = float(match.group(1))
             else:
                 chi2eff_values[lkl] = None
+
+        # Total chi2 
+        pattern = re.compile(r"-> Total:.*chi2eff= ([0-9.-]+)")
+        # Use regular expression to find the chi2eff value
+        match = pattern.search(chi2_per_exp_output)
+        if match:
+            # Convert the matched value to float and store in the dictionary
+            chi2eff_values['Total'] = float(match.group(1))
+        else:
+            chi2eff_values['Total'] = None
+            
         return chi2eff_values
 
     def update_MLs_chi2_per_exp(self, param_point):
@@ -1210,6 +1232,7 @@ class lkl_prof:
         pio.write_bf_dict_to_file(param_point, save_output_bf_file)
         # Run MP at this point and get chi2 values from output as dict 
         chi2_per_exp_output = self.MP_run_chi2_per_exp_at_point(output_dir=save_output_bf_loc, param_point_bf_file=save_output_bf_file)
+        # print(chi2_per_exp_output)
         chi2eff_values = self.get_chi2_per_exp_dict(chi2_per_exp_output)
         # new dictionary with passed parameter points and chi2eff values 
         params_and_chi2s = deepcopy(param_point)
@@ -1300,7 +1323,8 @@ class lkl_prof:
             if not last_entry_matches_current_params:
                 param_names, param_ML, self.MLs = self.read_minimum()
                 # read_min updates self.MLs 
-                self.write_MLs(self.MLs)
+                MLs_and_chi2 = self.update_MLs_chi2_per_exp(self.MLs)
+                self.write_MLs(MLs_and_chi2)
                 print(f'run_lkl_prof: -----> Minimizer run successfully for '\
                         f'{self.prof_param} = {self.MLs[self.prof_param]}')
 
@@ -1353,6 +1377,8 @@ class lkl_prof:
         last_entry_matches_current_params = self.match_param_line(self.MLs)
         if not last_entry_matches_current_params:
             param_names, param_ML, self.MLs = self.read_minimum()
+            MLs_and_chi2 = self.update_MLs_chi2_per_exp(self.MLs)
+            self.write_MLs(MLs_and_chi2)
             self.write_MLs(self.MLs)
             print(f'run_lkl_prof: -----> Minimizer run successfully for '\
                   f'{self.prof_param} = {self.MLs[self.prof_param]}')
