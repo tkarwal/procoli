@@ -293,7 +293,7 @@ class lkl_prof:
             self.run_mcmc()
         while not self.check_mcmc_convergence():
             run(f'mpirun -np 1 MontePython.py info {self.chains_dir} '\
-                '--keep-non-markovian --noplot --want-covmat', shell=True)
+                '--keep-non-markovian --noplot --want-covmat --minimal', shell=True)
             self.run_mcmc(N_steps=50000)
             self.check_mcmc_chains(read_all_chains=True)
         return True
@@ -383,7 +383,7 @@ class lkl_prof:
                 new_info_root = [x for x in self.chains_dir.split('/') if x][-1]
                 # TODO can we run montepython with mpirun directly from python?
                 run(f'mpirun -np 1 MontePython.py info {self.chains_dir} '\
-                    '--keep-non-markovian --noplot --want-covmat', 
+                    '--keep-non-markovian --noplot --want-covmat --minimal', 
                     shell=True, check=True)
                 # TODO can probably check if it exists with the module
                 pio.load_mp_info_files(f'{self.chains_dir}{self.info_root}.bestfit')
@@ -810,7 +810,7 @@ class lkl_prof:
                                              temp[0], N_steps, previous_chains=previous_chains)
         # analyse 
         mp_info_command = 'mpirun -np 1 MontePython.py info {folder} '\
-            '--keep-non-markovian --noplot'.format(
+            '--keep-non-markovian --noplot --minimal'.format(
             folder=self.chains_dir+min_folder+'/'
         )
         run(mp_info_command, shell=True)
@@ -852,7 +852,7 @@ class lkl_prof:
                                              temp[i], N_steps, previous_chains=previous_chains)
             # analyse 
             run_command = 'mpirun -np 1 MontePython.py info {folder} '\
-                '--keep-non-markovian --noplot'.format(
+                '--keep-non-markovian --noplot --minimal'.format(
                 folder=self.chains_dir+min_folder+'/'
             )
             run(run_command, shell=True)
@@ -899,7 +899,7 @@ class lkl_prof:
             run(run_command, shell=True)
             # analyse 
             run_command = 'mpirun -np 1 MontePython.py info {folder} '\
-                '--keep-non-markovian --noplot'.format(
+                '--keep-non-markovian --noplot --minimal'.format(
                 folder=self.chains_dir+min_folder+'/'
             )
             run(run_command, shell=True)
