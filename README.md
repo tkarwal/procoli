@@ -1,41 +1,95 @@
-
-# Code to extract profile likelihoods using MontePython
-
-### Written by Tanvi Karwal
+# Procoli
 
 
+| Procoli        | Profiles of cosmological likelihoods  |
+|----------------|---------------------------------------|
+| Authors        | Tanvi Karwal and Daniel Pfeffer       |
+| Installation   | `pip install procoli`                 |
+| Reference      | [arXiv:2401.XXXXX]()                  |
 
-This code is still being actively developed.  
-Prerequisites are an edited branch of [**MontePython**](https://github.com/tkarwal/montepython_lkl_prof) and everything that entails and [**GetDist**](https://getdist.readthedocs.io/en/latest/). Both can be pip installed, but I refer you to their own documentation to see specific installation instructions.  
-The rest of the required python modules are likely already installed, particularly if you're running anaconda. They include **numpy, subprocess, os, copy, time, glob**. 
 
-General logic of the code is as follows: 
+## Description 
 
-1. We begin by either running or inheriting from a global mcmc and then a minimization run, where all cosmological and nuisance parameters are varied. The result of this, the global maximum likelihood (or `global_ML`), becomes the starting point for the profile likelihood of the parameter of choice, `prof_param`.  
-The code then increments `prof_param` by input increment `prof_incr` and fixes it. This increment should be updated in later versions to be calculated from pre-run mcmc chains if possible.  
-2. Then, a minimization is run on all other parameters, beginning from the reference point of the previous (in this case, global) minimization run. Giving a good starting guess helps the minimizer. I am working on quantitatively understanding exactly how much this starting guess helps.  
-3. The result of this is stored, and the result provides the new reference starting points for the next run. We again increment `prof_param` by `prof_incr` and run the next minimizer. 
+Procoli is a python package for extracting profile likelihoods in cosmology. It wraps MontePython, a fast sampler written specifically for the CLASS Boltzmann code. All likelihoods available for use with MontePython are hence immediately available to all Procoli users. 
 
-In this way, we go until we hit the bounds `prof_min` or `prof_max` depending on whether `prof_incr` is positive or negative. The code then terminates itself.   
+It is based on a simulated-annealing optimizer to find the global maximum likelihoods value as well as the maximum likelihood points along the profile of any use input parameter. 
 
-Ideally, the code should be run on several processors to speed up the minimization, i.e., `cpus-per-task` in your job script should be ~4. 
+## Installation 
+
+Prerequisites are [MontePython](https://github.com/brinckmann/montepython_public) and [GetDist](https://getdist.readthedocs.io/en/latest/) and everything that those entail. Please refer to their individual documentations to see specific installation instructions.  
+- GetDist can be pip-installed and Procoli will attempt to install it by itself. 
+- MontePython must be installed by the user and must be on your PATH, such that it is callable from any directory, as described [here](https://github.com/brinckmann/montepython_public/blob/3.6/README.rst#the-montepython-part). 
+- Install [CLASS](https://github.com/lesgourg/class_public) and any likelihoods that you may want to use, eg. the [Planck Likelihood Code](https://pla.esac.esa.int/pla/#home). 
+
+## Running Procoli 
+
+Please see the notebooks, python scripts and bash scripts for example runs. 
+The recommended running strategy is to run Procoli via a python script submitted to a cluster, ideally running on several processors to speed up the minimization, i.e., `cpus-per-task` in your job script should be ~4. 
 The code should also be run using several parallel chains for robustness, i.e. input `processes` >= 4, say.
-For more details, see the **example_run** files. 
+For more details, see the [example_run.py](https://github.com/tkarwal/procoli/blob/v3_MP_mcmc/example_run.py) and [example_bash_script.sh](https://github.com/tkarwal/procoli/blob/v3_MP_mcmc/example_bash_script.sh) files. 
 
-The output is the file `<name>_<+/-><prof_param>_lkl_profile.txt` that contains the values of all parameters at the minimized points for each iteration of `prof_param`, plus derived params, and -logL.  
-This file can then be plotted as wanted. 
+The code outputs the file `<name>_<+/-><prof_param>_lkl_profile.txt` that contains the values of all parameters at the minimized points for each iteration of the profile parameter, plus derived params, the $-\log \mathcal{L}$ as well as the individual $\chi^2$ per experiment. The `<+/->` in the filename indicates whether the positive or negative tail of the profile was explored, starting from the best fit. As shown in the example files, both directions can be explored and these files can then be plotted, with some quick basic built-in functions demonstrated in [example_nb.ipynb](). 
 
-The repo contains functions to do all this, and a code that has the functions in the right order in a jupyter notebook as an example or for tests. 
-For actual jobs, I run something like the **example_run.py** file through something like the **example_bash_script.sh** script. 
-No need to run this file through mpi. All parallel commands are internally run as subprocesses. 
-So just execute 
+## Citing us
 
-> `python <name_of_script>.py` 
+Please cite the release paper [arXiv:2401.XXXXX]() (to be updated soon), along with MontePython, GetDist and CLASS. 
 
-in the SLURM scipt. Of course, assign the right number of total processors and cpus-per-task. See `example_bash_script.sh`.
+```
+% Procoli:
+@article{Karwal:2024,
+}
+% CLASS:
+@article{Blas:2011rf,
+    author = "Blas, Diego and Lesgourgues, Julien and Tram, Thomas",
+    title = "{The Cosmic Linear Anisotropy Solving System (CLASS) II: Approximation schemes}",
+    eprint = "1104.2933",
+    archivePrefix = "arXiv",
+    primaryClass = "astro-ph.CO",
+    reportNumber = "CERN-PH-TH-2011-082, LAPTH-010-11",
+    doi = "10.1088/1475-7516/2011/07/034",
+    journal = "JCAP",
+    volume = "07",
+    pages = "034",
+    year = "2011"
+}
+% MontePython:
+@article{Brinckmann:2018cvx,
+      author         = "Brinckmann, Thejs and Lesgourgues, Julien",
+      title          = "{MontePython 3: boosted MCMC sampler and other features}",
+      year           = "2018",
+      eprint         = "1804.07261",
+      archivePrefix  = "arXiv",
+      primaryClass   = "astro-ph.CO",
+      SLACcitation   = "%%CITATION = ARXIV:1804.07261;%%"
+}
+@article{Audren:2012wb,
+      author         = "Audren, Benjamin and Lesgourgues, Julien and Benabed,
+                        Karim and Prunet, Simon",
+      title          = "{Conservative Constraints on Early Cosmology: an
+                        illustration of the Monte Python cosmological parameter
+                        inference code}",
+      journal        = "JCAP",
+      volume         = "1302",
+      pages          = "001",
+      doi            = "10.1088/1475-7516/2013/02/001",
+      year           = "2013",
+      eprint         = "1210.7183",
+      archivePrefix  = "arXiv",
+      primaryClass   = "astro-ph.CO",
+      reportNumber   = "CERN-PH-TH-2012-290, LAPTH-048-12",
+      SLACcitation   = "%%CITATION = ARXIV:1210.7183;%%",
+}
+% GetDist
+@article{Lewis:2019xzd,
+ author         = "Lewis, Antony",
+ title          = "{GetDist: a Python package for analysing Monte Carlo
+                   samples}",
+ year           = "2019",
+ eprint         = "1910.13970",
+ archivePrefix  = "arXiv",
+ primaryClass   = "astro-ph.IM",
+ SLACcitation   = "%%CITATION = ARXIV:1910.13970;%%",
+ url            = "https://getdist.readthedocs.io"
+}
+```
 
-I'll eventually update the repo also with timed run of how many processors is optimal, how important good starting guesses are, etc. Benchmarking yet to be done. 
-
-This repo is currently by invite only. 
-
-Cheers!
