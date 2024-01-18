@@ -1,6 +1,5 @@
-Copyright 2017-2023 Jesus Torrado and Antony Lewis
-
-You are licensed to use this software free of charge within the terms of the LGPL (see below), with two additional conditions:
+You are licensed to use this software free of charge within the 
+terms of the LGPL (see below), with two additional conditions:
 
 - Any publication using results of the code must be submitted
   to arXiv.org at the same time as, or before, submitting to a

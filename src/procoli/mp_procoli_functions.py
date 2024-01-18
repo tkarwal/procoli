@@ -401,7 +401,7 @@ class lkl_prof:
 
         return global_min_exists, global_min_is_better
         
-    def global_min(self, run_glob_min=None, N_min_steps=3000, run_minuit=False):
+    def global_min(self, run_glob_min=None, N_min_steps=4000, run_minuit=False):
         """
         Check global minizer, run if wanted (default False), then write if not 
             already written 
@@ -724,7 +724,7 @@ class lkl_prof:
                     
         return chains
     
-    def run_minimizer(self, min_folder="lkl_prof", prev_bf=None, N_steps=5000, 
+    def run_minimizer(self, min_folder="lkl_prof", prev_bf=None, N_steps=3000, 
                       run_minuit=False, jump_fac=None, temp=None):
         """
         Run minimizer as described in 2107.10291, by incrementally running a finer MCMC 
