@@ -1275,7 +1275,7 @@ class lkl_prof:
         return self.current_prof_param
 
     
-    def run_lkl_prof(self, time_mins=False, N_min_steps=5000, run_minuit=False):
+    def run_lkl_prof(self, time_mins=False, N_min_steps=3000, run_minuit=False):
         """
         Run the likelihood profile loop. 
         Initialise time-keeping file if wanted. 
