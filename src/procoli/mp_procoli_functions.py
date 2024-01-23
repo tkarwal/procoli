@@ -705,11 +705,12 @@ class lkl_prof:
         :previous_chains: List of the previous chain files that have been updated
             The dfault is an empty list
 
-        :return: All chain files that have been updated previously
+        :return: All chain files that have been updated previously, 
+            or that needed no updates if temp == 1 for that step. 
         """
 
+        chains = glob(f'{path}*_{chain_length}__*.txt')
         if temp != 1:
-            chains = glob(f'{path}*_{chain_length}__*.txt')
             for chain in chains:
                 if chain not in previous_chains:
 
