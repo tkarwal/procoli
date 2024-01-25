@@ -19,7 +19,17 @@ It is based on a simulated-annealing optimizer to find the global maximum likeli
 Prerequisites are [MontePython](https://github.com/brinckmann/montepython_public) and [GetDist](https://getdist.readthedocs.io/en/latest/) and everything that those entail. Please refer to their individual documentations to see specific installation instructions.  
 - GetDist can be pip-installed and Procoli will attempt to install it by itself. 
 - MontePython must be installed by the user and must be on your PATH, such that it is callable from any directory, as described [here](https://github.com/brinckmann/montepython_public/blob/3.6/README.rst#the-montepython-part). 
-- Install [CLASS](https://github.com/lesgourg/class_public) and any likelihoods that you may want to use, eg. the [Planck Likelihood Code](https://pla.esac.esa.int/pla/#home). 
+- Install [CLASS](https://github.com/lesgourg/class_public) and any likelihoods that you may want to use, eg. the [Planck Likelihood Code](https://pla.esac.esa.int/pla/#home).
+
+To install Procoli, simply run  
+`pip install procoli`
+
+Alternatively you can clone the GitHub and install by doing:
+```
+git clone git@github.com:tkarwal/procoli.git
+cd procoli
+pip install -e .
+```
 
 ## Running Procoli 
 
@@ -37,7 +47,9 @@ Please cite the release paper [arXiv:2401.XXXXX]() (to be updated soon), along w
 ```
 % Procoli:
 @article{Karwal:2024,
+
 }
+
 % CLASS:
 @article{Blas:2011rf,
     author = "Blas, Diego and Lesgourgues, Julien and Tram, Thomas",
