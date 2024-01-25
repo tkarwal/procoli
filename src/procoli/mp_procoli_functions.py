@@ -126,7 +126,7 @@ class lkl_prof:
         :return: Nothing
         """
 
-        self.global_jump_fac = global_jump_fac
+        self.global_min_jump_fac = global_jump_fac
 
     def set_global_temp(self, global_min_temp):
         """
@@ -370,11 +370,23 @@ class lkl_prof:
             if self.info_root != new_info_root:
                 _ = pio.file_copy(f'{self.chains_dir}{self.info_root}.bestfit', 
                                   f'{self.chains_dir}{new_info_root}.bestfit')
-                _ = pio.file_copy(f'{self.chains_dir}{self.info_root}.log', 
-                                  f'{self.chains_dir}{new_info_root}.log')
                 _ = pio.file_copy(f'{self.chains_dir}{self.info_root}.covmat', 
                                   f'{self.chains_dir}{new_info_root}.covmat')
+                try:
+                    _ = pio.file_copy(f'{self.chains_dir}{self.info_root}.log', 
+                                      f'{self.chains_dir}{new_info_root}.log')
+                except FileNotFoundError:
+                    self.make_log_file( bf_file=f'{self.chains_dir}{self.info_root}.bestfit',
+                                        output_loc=self.chains_dir
+                                      )
+                    _ = pio.file_copy(f'{self.chains_dir}{self.info_root}.log', 
+                                      f'{self.chains_dir}{new_info_root}.log')
                 self.info_root = new_info_root
+            else:
+                if not os.path.exists(f'{self.chains_dir}{self.info_root}.log'):
+                    self.make_log_file( bf_file=f'{self.chains_dir}{self.info_root}.bestfit',
+                                        output_loc=self.chains_dir
+                                      )
                 
             global_min_exists = True
             existing_min = True
@@ -1241,6 +1253,53 @@ class lkl_prof:
     
         return params_and_chi2s
 
+    def make_log_file(self, bf_file, output_loc=None, output_log_file=None):
+        """
+        Generate a .log file containing the minimum of -logLike for a given .bestfit file
+        using MontePython, following the usual syntax of MP. 
+    
+        This function sets the likelihoods variable from log.param, runs MontePython at the 
+        specified parameter point given by bf_file, obtains chi^2 values for each experiment, 
+        and appends the total -logLike to a .log file.
+    
+        Args:
+        bf_file (str): File path to the MontePython best-fit parameter file.
+        output_loc (str, optional): Output location for the .log file. Defaults to 
+        self.chains_dir.
+    
+        Returns:
+        str: File path to the generated .log file.
+    
+        Example:
+        >>> log_file_path = make_log_file('my_procoli.bestfit')
+        >>> print(log_file_path)
+        'my_procoli.log'
+        """
+        # set output defaults 
+        if not output_loc:
+            output_loc = self.chains_dir
+        if not output_log_file:
+            output_log_file = f'{bf_file[:-8]}.log'
+        
+        # set likelihoods variable from log.param 
+        self.get_experiments()
+        
+        # Run MP at this point and get chi2 values from output as dict 
+        chi2_per_exp_output = self.MP_run_chi2_per_exp_at_point(
+            output_dir=output_loc, 
+            param_point_bf_file=bf_file
+        )
+        # print(chi2_per_exp_output)
+        chi2eff_values = self.get_chi2_per_exp_dict(chi2_per_exp_output)
+        # only relevant line to add to .log file 
+        save_loglike_in_log = f"--> Minimum of -logLike           : {chi2eff_values['Total']/2}"
+    
+        # save the .log file
+        pio.save_file( output_log_file, 
+                       lines=save_loglike_in_log
+                     )
+    
+        return output_log_file
         
     def update_and_save_min_output(self, extension='_lkl_prof'):
         """
