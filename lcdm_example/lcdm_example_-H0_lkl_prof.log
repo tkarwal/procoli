@@ -1,0 +1,21 @@
+2024-01-07_1500__1.txt	  Number of steps:1500	 Steps accepted:1163	 acc = 0.78	min(-loglike) = 1927.23
+2024-01-07_1500__2.txt	  Number of steps:1500	 Steps accepted:1138	 acc = 0.76	min(-loglike) = 1927.30
+2024-01-07_1500__3.txt	  Number of steps:1500	 Steps accepted:1084	 acc = 0.72	min(-loglike) = 1927.31
+2024-01-07_1500__4.txt	  Number of steps:1500	 Steps accepted:1134	 acc = 0.76	min(-loglike) = 1927.77
+2024-01-07_1500__5.txt	  Number of steps:1500	 Steps accepted:1151	 acc = 0.77	min(-loglike) = 1927.38
+2024-01-07_1500__6.txt	  Number of steps:1500	 Steps accepted:1164	 acc = 0.78	min(-loglike) = 1927.46
+2024-01-07_1500__7.txt	  Number of steps:1500	 Steps accepted:539	 acc = 0.36	min(-loglike) = 1927.02
+2024-01-07_1500__8.txt	  Number of steps:1500	 Steps accepted:469	 acc = 0.31	min(-loglike) = 1927.04
+2024-01-07_1500__9.txt	  Number of steps:1500	 Steps accepted:494	 acc = 0.33	min(-loglike) = 1927.04
+2024-01-07_1500__10.txt	  Number of steps:1500	 Steps accepted:597	 acc = 0.4	min(-loglike) = 1927.04
+2024-01-07_1500__11.txt	  Number of steps:1500	 Steps accepted:514	 acc = 0.34	min(-loglike) = 1927.02
+2024-01-07_1500__12.txt	  Number of steps:1500	 Steps accepted:574	 acc = 0.38	min(-loglike) = 1927.02
+2024-01-07_1500__13.txt	  Number of steps:1500	 Steps accepted:362	 acc = 0.24	min(-loglike) = 1926.99
+2024-01-07_1500__14.txt	  Number of steps:1500	 Steps accepted:398	 acc = 0.27	min(-loglike) = 1926.98
+2024-01-07_1500__15.txt	  Number of steps:1500	 Steps accepted:432	 acc = 0.29	min(-loglike) = 1926.98
+2024-01-07_1500__16.txt	  Number of steps:1500	 Steps accepted:409	 acc = 0.27	min(-loglike) = 1926.99
+2024-01-07_1500__17.txt	  Number of steps:1500	 Steps accepted:361	 acc = 0.24	min(-loglike) = 1926.98
+2024-01-07_1500__18.txt	  Number of steps:1500	 Steps accepted:419	 acc = 0.28	min(-loglike) = 1926.98
+--> Total    number    of    steps: 27000
+--> Total number of accepted steps: 12402
+--> Minimum of -logLike           : 1926.98

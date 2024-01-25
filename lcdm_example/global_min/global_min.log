@@ -1,0 +1,39 @@
+2024-01-06_4000__1.txt	  Number of steps:4000	 Steps accepted:1516	 acc = 0.38	min(-loglike) = 1906.19
+2024-01-06_4000__2.txt	  Number of steps:4000	 Steps accepted:1508	 acc = 0.38	min(-loglike) = 1905.60
+2024-01-06_4000__3.txt	  Number of steps:4000	 Steps accepted:1406	 acc = 0.35	min(-loglike) = 1905.60
+2024-01-06_4000__4.txt	  Number of steps:4000	 Steps accepted:1453	 acc = 0.36	min(-loglike) = 1906.60
+2024-01-06_4000__5.txt	  Number of steps:4000	 Steps accepted:1431	 acc = 0.36	min(-loglike) = 1905.97
+2024-01-06_4000__6.txt	  Number of steps:4000	 Steps accepted:1488	 acc = 0.37	min(-loglike) = 1905.86
+2024-01-06_4000__7.txt	  Number of steps:4000	 Steps accepted:1626	 acc = 0.41	min(-loglike) = 1905.14
+2024-01-06_4000__8.txt	  Number of steps:4000	 Steps accepted:1505	 acc = 0.38	min(-loglike) = 1905.66
+2024-01-06_4000__9.txt	  Number of steps:4000	 Steps accepted:1635	 acc = 0.41	min(-loglike) = 1905.33
+2024-01-06_4000__10.txt	  Number of steps:4000	 Steps accepted:1622	 acc = 0.41	min(-loglike) = 1905.59
+2024-01-06_4000__11.txt	  Number of steps:4000	 Steps accepted:1566	 acc = 0.39	min(-loglike) = 1905.23
+2024-01-06_4000__12.txt	  Number of steps:4000	 Steps accepted:1601	 acc = 0.4	min(-loglike) = 1905.89
+2024-01-06_4000__13.txt	  Number of steps:4000	 Steps accepted:2271	 acc = 0.57	min(-loglike) = 1905.33
+2024-01-06_4000__14.txt	  Number of steps:4000	 Steps accepted:2158	 acc = 0.54	min(-loglike) = 1905.08
+2024-01-06_4000__15.txt	  Number of steps:4000	 Steps accepted:2198	 acc = 0.55	min(-loglike) = 1905.20
+2024-01-06_4000__16.txt	  Number of steps:4000	 Steps accepted:2207	 acc = 0.55	min(-loglike) = 1904.98
+2024-01-06_4000__17.txt	  Number of steps:4000	 Steps accepted:2153	 acc = 0.54	min(-loglike) = 1905.15
+2024-01-06_4000__18.txt	  Number of steps:4000	 Steps accepted:2221	 acc = 0.56	min(-loglike) = 1905.31
+2024-01-06_4000__19.txt	  Number of steps:4000	 Steps accepted:2967	 acc = 0.74	min(-loglike) = 1904.99
+2024-01-06_4000__20.txt	  Number of steps:4000	 Steps accepted:3009	 acc = 0.75	min(-loglike) = 1905.01
+2024-01-06_4000__21.txt	  Number of steps:4000	 Steps accepted:2942	 acc = 0.74	min(-loglike) = 1904.96
+2024-01-06_4000__22.txt	  Number of steps:4000	 Steps accepted:2907	 acc = 0.73	min(-loglike) = 1904.95
+2024-01-06_4000__23.txt	  Number of steps:4000	 Steps accepted:3003	 acc = 0.75	min(-loglike) = 1904.96
+2024-01-06_4000__24.txt	  Number of steps:4000	 Steps accepted:3027	 acc = 0.76	min(-loglike) = 1904.95
+2024-01-06_4000__25.txt	  Number of steps:4000	 Steps accepted:1579	 acc = 0.39	min(-loglike) = 1904.77
+2024-01-06_4000__26.txt	  Number of steps:4000	 Steps accepted:1530	 acc = 0.38	min(-loglike) = 1904.76
+2024-01-06_4000__27.txt	  Number of steps:4000	 Steps accepted:1480	 acc = 0.37	min(-loglike) = 1904.79
+2024-01-06_4000__28.txt	  Number of steps:4000	 Steps accepted:1500	 acc = 0.38	min(-loglike) = 1904.77
+2024-01-06_4000__29.txt	  Number of steps:4000	 Steps accepted:1476	 acc = 0.37	min(-loglike) = 1904.76
+2024-01-06_4000__30.txt	  Number of steps:4000	 Steps accepted:1498	 acc = 0.37	min(-loglike) = 1904.77
+2024-01-06_4000__31.txt	  Number of steps:4000	 Steps accepted:893	 acc = 0.22	min(-loglike) = 1904.75
+2024-01-06_4000__32.txt	  Number of steps:4000	 Steps accepted:1021	 acc = 0.26	min(-loglike) = 1904.75
+2024-01-06_4000__33.txt	  Number of steps:4000	 Steps accepted:901	 acc = 0.23	min(-loglike) = 1904.74
+2024-01-06_4000__34.txt	  Number of steps:4000	 Steps accepted:923	 acc = 0.23	min(-loglike) = 1904.75
+2024-01-06_4000__35.txt	  Number of steps:4000	 Steps accepted:943	 acc = 0.24	min(-loglike) = 1904.74
+2024-01-06_4000__36.txt	  Number of steps:4000	 Steps accepted:958	 acc = 0.24	min(-loglike) = 1904.74
+--> Total    number    of    steps: 144000
+--> Total number of accepted steps: 64122
+--> Minimum of -logLike           : 1904.74
