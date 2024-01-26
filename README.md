@@ -37,7 +37,7 @@ where the `-e` can be omitted if you do not want an editable version of the code
 Please see the notebooks, python scripts and bash scripts for example runs. 
 The recommended running strategy is to run Procoli via a python script submitted to a cluster, ideally running on several processors to speed up the minimization, i.e., `cpus-per-task` in your job script should be ~4. 
 The code should also be run using several parallel chains for robustness, i.e. input `processes` >= 4, say.
-For more details, see the [example_run.py](https://github.com/tkarwal/procoli/blob/v3_MP_mcmc/example_run.py) and [example_bash_script.sh](https://github.com/tkarwal/procoli/blob/v3_MP_mcmc/example_bash_script.sh) files. 
+For more details, see the [example_run.py](https://github.com/tkarwal/procoli/blob/main/example_run.py) and [example_bash_script.sh](https://github.com/tkarwal/procoli/blob/main/example_bash_script.sh) files. 
 
 The code outputs the file `<name>_<+/-><prof_param>_lkl_profile.txt` that contains the values of all parameters at the minimized points for each iteration of the profile parameter, plus derived params, the $-\log \mathcal{L}$ as well as the individual $\chi^2$ per experiment. 
 The `<+/->` in the filename indicates whether the positive or negative tail of the profile was explored, starting from the best fit. 
