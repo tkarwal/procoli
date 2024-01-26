@@ -1,9 +1,8 @@
-@software{lkl_prof,
-  author = {Karwal, Tanvi, Patel, Yashvi, Bartlett, Alexa, Smith, Tristan L. and Poulin, Vivian},
-  doi = {XXXXX/zenodo.XXXX},
-  month = {12},
-  title = {{Likelihood Profile Code}},
-  url = {https://github.com/tkarwal/lkl_prof/tree/v3_MP_mcmc},
-  version = {3.0.1},
-  year = {2023}
+@article{karwal2024procoli,
+      author = "Karwal, Tanvi and Patel, Yashvi and Bartlett, Alexa and Poulin, Vivian and Smith, Tristan L. and Pfeffer, Daniel N.",
+      title = "{Procoli: Profiles of cosmological likelihoods}", 
+      eprint = "2401.14225",
+      archivePrefix = "arXiv",
+      primaryClass = "astro-ph.CO",
+      year = "2024"
 }
