@@ -5,7 +5,7 @@
 |----------------|---------------------------------------|
 | Authors        | Tanvi Karwal and Daniel Pfeffer       |
 | Installation   | `pip install procoli`                 |
-| Reference      | [arXiv:2401.XXXXX]()                  |
+| Reference      | [arXiv:2401.14225](https://arxiv.org/abs/2401.14225)                  |
 
 
 ## Description 
@@ -30,6 +30,7 @@ git clone git@github.com:tkarwal/procoli.git
 cd procoli
 pip install -e .
 ```
+where the `-e` can be omitted if you do not want an editable version of the code. 
 
 ## Running Procoli 
 
@@ -38,16 +39,23 @@ The recommended running strategy is to run Procoli via a python script submitted
 The code should also be run using several parallel chains for robustness, i.e. input `processes` >= 4, say.
 For more details, see the [example_run.py](https://github.com/tkarwal/procoli/blob/v3_MP_mcmc/example_run.py) and [example_bash_script.sh](https://github.com/tkarwal/procoli/blob/v3_MP_mcmc/example_bash_script.sh) files. 
 
-The code outputs the file `<name>_<+/-><prof_param>_lkl_profile.txt` that contains the values of all parameters at the minimized points for each iteration of the profile parameter, plus derived params, the $-\log \mathcal{L}$ as well as the individual $\chi^2$ per experiment. The `<+/->` in the filename indicates whether the positive or negative tail of the profile was explored, starting from the best fit. As shown in the example files, both directions can be explored and these files can then be plotted, with some quick basic built-in functions demonstrated in [example_nb.ipynb](). 
+The code outputs the file `<name>_<+/-><prof_param>_lkl_profile.txt` that contains the values of all parameters at the minimized points for each iteration of the profile parameter, plus derived params, the $-\log \mathcal{L}$ as well as the individual $\chi^2$ per experiment. 
+The `<+/->` in the filename indicates whether the positive or negative tail of the profile was explored, starting from the best fit. 
+As shown in the example files, both directions can be explored and these files can then be plotted, with some quick basic built-in functions demonstrated in [lcdm_example.ipynb](https://github.com/tkarwal/procoli/blob/main/lcdm_example.ipynb). 
 
 ## Citing us
 
-Please cite the release paper [arXiv:2401.XXXXX]() (to be updated soon), along with MontePython, GetDist and CLASS. 
+Please cite the release paper [arXiv:2401.14225](https://arxiv.org/abs/2401.14225), along with MontePython, GetDist and CLASS. 
 
 ```
 % Procoli:
-@article{Karwal:2024,
-
+@article{karwal2024procoli,
+      author = "Karwal, Tanvi and Patel, Yashvi and Bartlett, Alexa and Poulin, Vivian and Smith, Tristan L. and Pfeffer, Daniel N.",
+      title = "{Procoli: Profiles of cosmological likelihoods}", 
+      eprint = "2401.14225",
+      archivePrefix = "arXiv",
+      primaryClass = "astro-ph.CO",
+      year = "2024"
 }
 
 % CLASS:
