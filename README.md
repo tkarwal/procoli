@@ -1,11 +1,11 @@
 # Procoli
 
 
-| Procoli        | Profiles of cosmological likelihoods  |
-|----------------|---------------------------------------|
-| Authors        | Tanvi Karwal and Daniel Pfeffer       |
-| Installation   | `pip install procoli`                 |
-| Reference      | [arXiv:2401.14225](https://arxiv.org/abs/2401.14225)                  |
+| Procoli        | Profiles of cosmological likelihoods                 |
+|----------------|------------------------------------------------------|
+| Authors        | Tanvi Karwal and Daniel Pfeffer                      |
+| Installation   | `pip install procoli`                                |
+| Reference      | [arXiv:2401.14225](https://arxiv.org/abs/2401.14225) |
 
 
 ## Description 
@@ -22,7 +22,7 @@ Prerequisites are [MontePython](https://github.com/brinckmann/montepython_public
 - Install [CLASS](https://github.com/lesgourg/class_public) and any likelihoods that you may want to use, eg. the [Planck Likelihood Code](https://pla.esac.esa.int/pla/#home).
 
 To install Procoli, simply run  
-`pip install procoli`
+`pip install procoli --upgrade`
 
 Alternatively you can clone the GitHub and install by doing:
 ```
