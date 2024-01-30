@@ -67,7 +67,7 @@ class LogParamUpdateError(Exception):
     """
     A custom exception for Procoli
     Is raised when the parameter the profile is being generated for
-        can not be find in the parameter log
+        can not be found in the parameter log
     """
 
     def __init__(self, prof_param, lkl_lp, error_code=1):
@@ -95,3 +95,34 @@ class LogParamUpdateError(Exception):
 
         return ('Error: increment_update_logparam: could not find line with '\
                 f'profile lkl parameter {prof_param} in log.param at {lkl_lp}')
+
+class ExperimentNotFoundError(Exception):
+    """
+    A custom exception for Procoli
+    Is raised when an experiment listed in the log.param is not found 
+        in the output of the --display-each-chi2 run. 
+    """
+
+    def __init__(self, experiment, error_code=1):
+        """
+        Constructs the exception using the base class
+
+        :experiment: Experiment expected in --display-each-chi2 output 
+
+        :return: Nothing
+        """
+
+        super().__init__(self.message(experiment))
+        self.error_code = error_code
+
+    def message(self, experiment):
+        """
+        Generate the message associated with the exception
+
+        :experiment: Experiment expected in --display-each-chi2 output 
+
+        :return: The error message to give with the exception
+        """
+
+        return ('Error: get_chi2_per_exp_dict: could not find line with '\
+                f'experiment {experiment} in output of --display-each-chi2')

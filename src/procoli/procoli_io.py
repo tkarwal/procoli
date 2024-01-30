@@ -1,6 +1,7 @@
 from os import remove, makedirs
 from glob import glob
 from shutil import copy
+from importlib_resources import files
 
 import numpy as np
 
@@ -186,3 +187,29 @@ def write_bf_dict_to_file(bf_dict, bf_file):
         f.write(values_line)
         
     return bf_file
+
+def get_experiment_crosslist():
+    """
+    Load and return a dictionary mapping log.param names to corresponding output names.
+    Some MontePython likelihoods are confusing to Procoli, because they are called by certain 
+    names in the log.param, but they are output by different names. This function is required 
+    to relate the two, particularly for getting the chi2 per experiment output. 
+
+    This function reads the MP_experiment_crosslist.csv file, which contains pairs of log.param
+    names and their corresponding output names, for likelihoods that have this confusing 
+    behaviour. It then creates a dictionary with log.param names as keys and output names 
+    as values.
+
+    Returns:
+    dict: A dictionary mapping log.param names to corresponding output names.
+
+    Example:
+    >>> crosslist_dict = get_experiment_crosslist()
+    >>> print(crosslist_dict)
+    {'Pantheon_Plus': 'Pantheon_Plus_test', 'Pantheon_Plus_SH0ES': 'Pantheon_Plus_test', ...}
+    """
+    exp_crosslist_file = files('procoli.data').joinpath('MP_experiment_crosslist.csv')
+    log_exp, output_exp = np.loadtxt(exp_crosslist_file, dtype=str, delimiter=',', unpack=True)
+    experiment_crosslist = dict(zip(log_exp, output_exp))
+    
+    return experiment_crosslist

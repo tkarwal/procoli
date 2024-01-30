@@ -10,7 +10,7 @@ namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
 
 [project]
 name = 'procoli'
-version = '1.0.0'
+version = '1.0.01'
 authors = [
     { name='Tanvi Karwal', email='karwal@uchicago.edu' },
     { name='Daniel Pfeffer', email='dnpfeffe@gmail.com' }
