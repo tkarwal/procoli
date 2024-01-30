@@ -125,4 +125,10 @@ class ExperimentNotFoundError(Exception):
         """
 
         return ('Error: get_chi2_per_exp_dict: could not find line with '\
-                f'experiment {experiment} in output of --display-each-chi2')
+                f'experiment {experiment} in output of --display-each-chi2 '\
+                '\nThis can happen because the experiment is called by the '\
+                'log.param by a different name than its output name in MP '\
+                '--display-each-chi2 . For this scenario, you can update the '\
+                'file procoli/data/MP_experiment_crosslist.csv '\
+                '\nOr there are errors within MP running --display-each-chi2 '\
+                'that need to be resolved ')
