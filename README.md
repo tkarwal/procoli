@@ -1,5 +1,6 @@
 # Procoli
 
+<img align="right" src="https://github.com/tkarwal/procoli/raw/main/procoli.png" width="500px">
 
 | Procoli        | Profiles of cosmological likelihoods                 |
 |----------------|------------------------------------------------------|
