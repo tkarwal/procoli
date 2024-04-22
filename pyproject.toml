@@ -13,7 +13,7 @@ procoli = ["data/*.csv"]
 
 [project]
 name = 'procoli'
-version = '1.0.01'
+version = '1.0.02'
 authors = [
     { name='Tanvi Karwal', email='karwal@uchicago.edu' },
     { name='Daniel Pfeffer', email='dnpfeffe@gmail.com' }
