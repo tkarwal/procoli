@@ -50,15 +50,15 @@ Please cite the release paper [arXiv:2401.14225](https://arxiv.org/abs/2401.1422
 
 ```
 % Procoli:
-@article{karwal2024procoli,
-      author = "Karwal, Tanvi and Patel, Yashvi and Bartlett, Alexa and Poulin, Vivian and Smith, Tristan L. and Pfeffer, Daniel N.",
-      title = "{Procoli: Profiles of cosmological likelihoods}", 
-      eprint = "2401.14225",
-      archivePrefix = "arXiv",
-      primaryClass = "astro-ph.CO",
-      year = "2024"
+@article{Karwal:2024qpt,
+    author = "Karwal, Tanvi and Patel, Yashvi and Bartlett, Alexa and Poulin, Vivian and Smith, Tristan L. and Pfeffer, Daniel N.",
+    title = "{Procoli: Profiles of cosmological likelihoods}",
+    eprint = "2401.14225",
+    archivePrefix = "arXiv",
+    primaryClass = "astro-ph.CO",
+    month = "1",
+    year = "2024"
 }
-
 % CLASS:
 @article{Blas:2011rf,
     author = "Blas, Diego and Lesgourgues, Julien and Tram, Thomas",

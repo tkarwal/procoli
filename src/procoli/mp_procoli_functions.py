@@ -71,8 +71,8 @@ class lkl_prof:
                  global_min_temp=[0.3333, 0.25, 0.2, 0.1, 0.005, 0.001]
                 ):
         
-        self.chains_dir = chains_dir
-        chains_full_path = os.path.abspath(self.chains_dir)
+        chains_full_path = os.path.abspath(chains_dir)
+        self.chains_dir = chains_full_path + '/'
         if info_root is None: 
             info_root = [x for x in chains_full_path.split('/') if x][-1]
         self.info_root = info_root 
