@@ -1036,7 +1036,7 @@ class lkl_prof:
                     prof_param_lp_data = prof_param_lp_line[1].split(',')
                     
                     updated_prof_param = self.MLs[self.prof_param]+self.prof_incr
-                    prof_param_lp_data[0] = f'[{updated_prof_param}'
+                    prof_param_lp_data[0] = f'[{updated_prof_param/float(prof_param_lp_data[4])}'
                     prof_param_lp_data[3] = '0.'
                 
                     prof_param_lp_data_str = ','.join(prof_param_lp_data)
@@ -1203,7 +1203,7 @@ class lkl_prof:
         # Iterate over likelihoods
         for lkl in likelihoods:
             # Define the reg expression pattern for finding chi2eff value
-            pattern = re.compile(fr"-> for  {lkl} : .* chi2eff= ([0-9.-]+)")
+            pattern = re.compile(fr"-> for  {lkl} : .* chi2eff= ([0-9.-]+(?:[eE][+-]?[0-9]+)?)")
             # Use regular expression to find the chi2eff value
             match = pattern.search(chi2_per_exp_output)
             if match:
