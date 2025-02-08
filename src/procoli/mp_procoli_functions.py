@@ -1215,7 +1215,7 @@ class lkl_prof:
             else:
                 if lkl in exp_crosslist:
                     lkl_cross = exp_crosslist[lkl]
-                    pattern = re.compile(fr"-> for  {lkl_cross} : .* chi2eff= ([0-9.-]+)")
+                    pattern = re.compile(fr"-> for  {lkl_cross} : .* chi2eff= ([0-9.-]+(?:[eE][+-]?[0-9]+)?)")
                     match = pattern.search(chi2_per_exp_output)
                     if match:
                         chi2eff_values[lkl] = float(match.group(1))
@@ -1225,7 +1225,7 @@ class lkl_prof:
                     raise ExperimentNotFoundError(lkl)
     
         # Total chi2 
-        pattern = re.compile(r"-> Total:.*chi2eff= ([0-9.-]+)")
+        pattern = re.compile(r"-> Total:.*chi2eff= ([0-9.-]+(?:[eE][+-]?[0-9]+)?)")
         # Use regular expression to find the chi2eff value
         match = pattern.search(chi2_per_exp_output)
         if match:
