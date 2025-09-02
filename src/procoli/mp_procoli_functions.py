@@ -729,10 +729,12 @@ class lkl_prof:
                     # read in the current chain, update the negative log likelihood
                     # and then save the new data back to the original file
                     chain_file = pio.load_mp_info_files(chain)
-                    row_size = chain_file.shape[1]
-                    frmt_list = ['%.4g', '%.6g'] + ['%.6e']*(row_size-2)
-                    chain_file[:,1] = chain_file[:,1]*temp
-                    pio.save_mp_info_files(chain, chain_file, fmt=frmt_list, 
+                    chain_file = np.atleast_2d(chain_file)
+                    if chain_file.shape[1] > 0:
+                        row_size = chain_file.shape[1]
+                        chain_file[:,1] = chain_file[:,1]*temp
+                        frmt_list = ['%.4g', '%.6g'] + ['%.6e']*(row_size-2)
+                        pio.save_mp_info_files(chain, chain_file, fmt=frmt_list, 
                                            delimiter='\t')
                     
         return chains
